@@ -190,14 +190,17 @@ class Evaluation:
     """An objective + constraint verdict on one point.
 
     ``measurements`` holds every measurement that contributed (one per
-    workload and load); ``measurement`` is the first, for callers that only
-    need a representative. A point is feasible only if all of them are.
+    workload, load, and repeat); ``measurement`` is the first, for callers that
+    only need a representative. A point is feasible only if all of them are.
     """
 
     measurements: Tuple[Measurement, ...]
     feasible: bool
     violations: Tuple[Violation, ...] = ()
     components: Optional[Tuple[float, ...]] = None
+    #: Widest relative spread of the primary component across the repeats of
+    #: any one group, or None when nothing was measured twice.
+    spread: Optional[float] = None
 
     @property
     def measurement(self) -> Measurement:
@@ -236,20 +239,62 @@ def evaluate(
     )
 
 
+def _median_repeat(group: Sequence[Measurement], objective: Objective) -> Measurement:
+    """The middle measurement of one group, by the objective's primary score.
+
+    A real measurement rather than an average of several: its metrics stay
+    mutually consistent and its artifacts still point at the run that produced
+    them. With an even count this takes the lower middle, which is the
+    pessimistic half.
+    """
+    scored = sorted(
+        group,
+        key=lambda m: (c[0] if (c := objective.components(m)) else -math.inf),
+    )
+    return scored[(len(scored) - 1) // 2]
+
+
+def _relative_spread(
+    group: Sequence[Measurement], objective: Objective
+) -> Optional[float]:
+    scores = sorted(c[0] for m in group if (c := objective.components(m)))
+    if len(scores) < 2:
+        return None
+    middle = abs(scores[len(scores) // 2])
+    return (scores[-1] - scores[0]) / middle if middle else None
+
+
 def evaluate_point(
     measurements: Sequence[Measurement],
     objective: Objective,
     constraints: Sequence[Constraint] = (),
 ) -> Evaluation:
-    """Verdict on one point from all of its measurements."""
+    """Verdict on one point from all of its measurements.
+
+    Repeats of one (workload, load) collapse to their median first. They
+    measure the same thing, so combining them is arithmetic; measurements of
+    *different* workloads are a policy question left to the objective.
+    """
     per_measurement = [evaluate(m, objective, constraints) for m in measurements]
     violations = tuple(v for e in per_measurement for v in e.violations)
     feasible = all(e.feasible for e in per_measurement)
+
+    groups: Dict[str, List[Measurement]] = {}
+    for m in measurements:
+        groups.setdefault(m.trial.repeat_group, []).append(m)
+    representatives = [_median_repeat(g, objective) for g in groups.values()]
+    # `is not None`, not truthiness: a spread of exactly 0.0 means the point
+    # reproduced perfectly, which is the opposite of "never measured twice".
+    spreads = [
+        s for g in groups.values() if (s := _relative_spread(g, objective)) is not None
+    ]
+
     return Evaluation(
         measurements=tuple(measurements),
         feasible=feasible,
         violations=violations,
-        components=objective.aggregate(measurements) if feasible else None,
+        components=objective.aggregate(representatives) if feasible else None,
+        spread=max(spreads) if spreads else None,
     )
 
 

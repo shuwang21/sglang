@@ -148,6 +148,9 @@ class Fidelity:
 
     level: int = 0
     scale: float = 1.0
+    #: Independent measurements of this trial. Each is a separate process, so
+    #: the spread across them is the run's own noise floor -- without it a
+    #: winner is reported at whatever margin, including one below that floor.
     repeats: int = 1
     label: str = "full"
 
@@ -278,6 +281,24 @@ class Trial:
                     self.fidelity.repeats,
                 ],
                 "provenance": self.provenance_fingerprint,
+                "bucket": self.bucket,
+                "attempt": self.attempt,
+            }
+        )
+
+    @property
+    def repeat_group(self) -> str:
+        """Identity shared by every repeat of this measurement.
+
+        The key separates attempts so the store keeps them all; ranking has to
+        put them back together, and this is what it groups on.
+        """
+        return stable_hash(
+            {
+                "point": self.point.values,
+                "workload": self.workload.fingerprint,
+                "workload_name": self.workload.name,
+                "load": [self.load.request_rate, self.load.max_concurrency],
                 "bucket": self.bucket,
             }
         )

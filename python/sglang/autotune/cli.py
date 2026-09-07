@@ -90,6 +90,16 @@ def build_parser() -> argparse.ArgumentParser:
                 "0 searches the whole space."
             ),
         )
+        sub.add_argument(
+            "--repeats",
+            type=int,
+            default=1,
+            help=(
+                "Measure each candidate this many times, in separate "
+                "processes. Costs proportionally and buys the run's own "
+                "spread, without which a reported lead cannot be read."
+            ),
+        )
         sub.add_argument("--host", default="127.0.0.1")
         sub.add_argument("--port", type=int, default=31000)
         sub.add_argument(
@@ -171,7 +181,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Cache post-process weights so later trials skip the load. Writes "
-            "under <model_path>/presharded/; the first launch pays to build it."
+            "under <output_dir>/presharded/; the first launch pays to build it."
         ),
     )
     serve.add_argument(
@@ -218,6 +228,7 @@ def _shared(
         budget=Budget(wall_clock_hours=args.budget_hours),
         output_dir=args.output_dir,
         seed=args.seed,
+        repeats=args.repeats,
         **kwargs,
     )
 

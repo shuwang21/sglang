@@ -51,9 +51,16 @@ def _margin_line(ranked: List[Evaluation]) -> List[str]:
     lead = margin(ranked)
     if lead is None:
         return []
-    repeated = ranked[0].measurement.trial.fidelity.repeats > 1
-    caveat = "" if repeated else " Each point was measured once."
-    return [f"Ahead of the runner-up by {lead * 100:.2f}%.{caveat}"]
+    line = f"Ahead of the runner-up by {lead * 100:.2f}%."
+    spread = max((e.spread for e in ranked if e.spread is not None), default=None)
+    if spread is None:
+        return [line + " Each point was measured once."]
+    verdict = "above" if lead > spread else "within"
+    return [
+        line,
+        f"Repeated measurements of one point spread by up to "
+        f"{spread * 100:.2f}%, so the lead is {verdict} this run's own noise.",
+    ]
 
 
 @register_reporter("best_config")

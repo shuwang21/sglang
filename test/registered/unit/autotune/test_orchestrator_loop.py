@@ -319,6 +319,42 @@ class TestGridStrategy(CustomTestCase):
         self.assertTrue(task.strategy.is_exhausted())
         self.assertEqual(result.best_point.get("tp_size"), 4)
 
+    def test_repeats_are_kept_apart_and_ranked_on_their_median(self):
+        """Three measurements of one point, not one measurement counted thrice.
+
+        Two failure modes at once. The trial key did not mention the attempt,
+        so the store deduped every repeat down to the first and a resumed run
+        saw one. And ranking took whatever single measurement it had, so an
+        erratic point that peaked high beat a steady better one.
+        """
+        calls: dict = {}
+
+        def flaky(point, workload):
+            slot = (point.get("tp_size"), point.get("backend"))
+            series = {
+                (1, "fa3"): [100.0, 300.0, 200.0],  # erratic, median 200
+                (1, "triton"): [210.0, 210.0, 210.0],  # steady, median 210
+            }.get(slot, [50.0, 50.0, 50.0])
+            n = calls.get(slot, 0)
+            calls[slot] = n + 1
+            return {"output_throughput": series[n], "p99_ttft_ms": 1.0}
+
+        task = _build_task(self.tmp, metric_fn=flaky, strategy=GridStrategy())
+        task.repeats = 3
+        result = tune(task)
+
+        self.assertEqual(len(task.driver.measured), 18)
+        self.assertEqual(len(task.store.history()), 18)
+        self.assertEqual(result.best_point.get("backend"), "triton")
+        # (300 - 100) / 200, the erratic point's own range over its median.
+        self.assertAlmostEqual(max(e.spread for e in result.ranking), 1.0)
+
+    def test_estimated_trials_counts_every_repeat(self):
+        """A plan that understates the cost threefold is worse than none."""
+        task = _build_task(self.tmp, strategy=GridStrategy())
+        task.repeats = 3
+        self.assertEqual(task.estimated_trials(), 18)
+
     def test_a_resume_retries_what_failed(self):
         """A resume kept a run's failures and then reported nothing to do.
 

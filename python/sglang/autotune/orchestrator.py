@@ -160,7 +160,7 @@ class Orchestrator:
         return self.task.strategy.should_prune(trial.point, partial_metrics)
 
     def _expand(self, point: Point, workloads: Sequence) -> Iterator[Trial]:
-        """One point becomes one trial per workload per load setting.
+        """One point becomes one trial per workload, load setting, and repeat.
 
         A capacity search counts as a single trial: the bisect is an inner loop
         inside the driver, because it characterizes one config rather than
@@ -169,16 +169,19 @@ class Orchestrator:
         task = self.task
         plan = task.load_plan
         loads = (LoadPoint(),) if plan.search is not None else plan.fixed
+        fidelity = task.fidelity_for(point)
         for workload in workloads:
             for load in loads:
-                yield Trial(
-                    point=point,
-                    workload=workload,
-                    load=load,
-                    fidelity=task.strategy.fidelity_for(point),
-                    provenance_fingerprint=task.provenance.fingerprint,
-                    bucket=task.bucket_of(workload, load),
-                )
+                for attempt in range(fidelity.repeats):
+                    yield Trial(
+                        point=point,
+                        workload=workload,
+                        load=load,
+                        fidelity=fidelity,
+                        attempt=attempt,
+                        provenance_fingerprint=task.provenance.fingerprint,
+                        bucket=task.bucket_of(workload, load),
+                    )
 
     def _pre_screen(self, trial: Trial) -> Optional[Measurement]:
         """Reject before spending a GPU. Returns a measurement if rejected.

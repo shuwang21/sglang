@@ -9,7 +9,7 @@ without going through YAML at all.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
@@ -21,6 +21,7 @@ from sglang.autotune.store import TrialStore
 from sglang.autotune.strategy.base import Strategy
 from sglang.autotune.types import (
     Budget,
+    Fidelity,
     LoadPoint,
     Measurement,
     Point,
@@ -101,6 +102,22 @@ class TuneTask:
     #: One winner per bucket. The default is one shared bucket (a single
     #: best.yaml); kernel tuning buckets by shape or batch size instead.
     bucket_of: BucketRule = _single_bucket
+    #: Independent measurements per trial. More than one costs proportionally
+    #: and buys the only thing that makes a margin readable: the run's own
+    #: spread. A strategy's reduced-fidelity rungs are left at one.
+    repeats: int = 1
+
+    def fidelity_for(self, point: Point) -> Fidelity:
+        """The strategy's fidelity, with the run's repeat count applied.
+
+        How many times to measure is the run's decision, not the search's, so
+        it is not the strategy's to override; a rung the strategy asked to be
+        cheap stays cheap.
+        """
+        fidelity = self.strategy.fidelity_for(point)
+        if self.repeats > 1 and fidelity.is_full:
+            return replace(fidelity, repeats=self.repeats)
+        return fidelity
 
     def validate(self) -> List[str]:
         """Config errors worth failing before any GPU is touched.
@@ -133,16 +150,18 @@ class TuneTask:
             self.hardware.gpus_per_trial > self.hardware.gpu_count
         ):
             errors.append("hardware.gpus_per_trial exceeds hardware.gpu_count")
+        if self.repeats < 1:
+            errors.append("repeats must be at least 1")
         return errors
 
     def estimated_trials(self) -> int:
         """Upper bound used by ``autotune plan`` to state a run's cost.
 
-        A point costs one trial per (workload, load); the strategy says how
+        A point costs one trial per (workload, load, repeat); the strategy says how
         many points it means to try, falling back to the whole space when it
         is unbounded. Zero means neither bound is known.
         """
-        per_point = len(self.workloads) * self.load_plan.estimated_runs
+        per_point = len(self.workloads) * self.load_plan.estimated_runs * self.repeats
         points = self.strategy.estimated_points()
         if points is None:
             points = self.space.cardinality
