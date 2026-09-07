@@ -79,7 +79,7 @@ class TestClassifyFailure(CustomTestCase):
             "kill_process_tree called: parent_pid=13311\n"
         )
         self.assertIn("flashinfer_python", _reason(_EXITED, log))
-        self.assertEqual(_reason(_EXITED, "no traceback here"), str(_EXITED))
+        self.assertEqual(_reason(_EXITED, "no traceback here"), f"Exception: {_EXITED}")
 
     def test_an_exit_is_a_crash_and_only_a_timeout_is_a_timeout(self):
         self.assertEqual(
