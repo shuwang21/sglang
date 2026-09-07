@@ -105,6 +105,15 @@ def build_parser() -> argparse.ArgumentParser:
             help="GPUs one candidate needs, e.g. its tp size.",
         )
         sub.add_argument(
+            "--executor",
+            choices=("auto", "serial", "pool"),
+            default="auto",
+            help=(
+                "`auto` pools only when a candidate leaves room beside it. "
+                "Force `pool` on one GPU to exercise the subprocess path."
+            ),
+        )
+        sub.add_argument(
             "--strategy",
             choices=("random", "grid"),
             default="random",
@@ -214,8 +223,15 @@ def _shared(
 
 
 def _executor(args, driver, hardware, workloads, slot):
-    """A pool only when a candidate leaves room for another beside it."""
-    if hardware.concurrent_trials <= 1:
+    """A pool only when a candidate leaves room for another beside it.
+
+    Forcing `pool` at one slot buys no parallelism but does run the trial in a
+    worker subprocess, which is the half of the pool a single-GPU host can
+    still check: that the driver survives being pickled and set up over there.
+    """
+    if args.executor == "serial":
+        return LocalExecutor(driver, slot=slot)
+    if args.executor == "auto" and hardware.concurrent_trials <= 1:
         return LocalExecutor(driver, slot=slot)
     slots = build_slots(
         args.gpu_count,
