@@ -72,16 +72,19 @@ class Orchestrator:
         # about this run. The store still dedups on the full trial key, but the
         # strategy's seen-set is keyed on the point alone, so stale history
         # would stop it proposing anything at all.
-        history = [
+        same_env = [
             m
             for m in recorded
             if m.trial.provenance_fingerprint == task.provenance.fingerprint
         ]
-        if len(history) != len(recorded):
+        if len(same_env) != len(recorded):
             logger.info(
                 "ignoring %d trials recorded in a different environment",
-                len(recorded) - len(history),
+                len(recorded) - len(same_env),
             )
+        history = [m for m in same_env if m.status.is_settled]
+        if len(history) != len(same_env):
+            logger.info("retrying %d trials that failed", len(same_env) - len(history))
         if history:
             logger.info("resuming with %d recorded trials", len(history))
         task.strategy.setup(
@@ -196,7 +199,7 @@ class Orchestrator:
 
         if task.resume and task.store is not None:
             existing = task.store.lookup(trial.key)
-            if existing is not None:
+            if existing is not None and existing.status.is_settled:
                 logger.debug("reusing recorded trial %s", trial.key)
                 return existing
 

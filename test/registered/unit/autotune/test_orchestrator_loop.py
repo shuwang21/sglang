@@ -319,6 +319,40 @@ class TestGridStrategy(CustomTestCase):
         self.assertTrue(task.strategy.is_exhausted())
         self.assertEqual(result.best_point.get("tp_size"), 4)
 
+    def test_a_resume_retries_what_failed(self):
+        """A resume kept a run's failures and then reported nothing to do.
+
+        Every trial of the first run failed. The second run replayed those
+        into the strategy, which counted the points as proposed and declared
+        the space exhausted, and the store handed the failures straight back
+        as the answer -- so a bad first attempt was permanent for that output
+        directory.
+        """
+        first = _build_task(
+            self.tmp, strategy=GridStrategy(), metric_fn=lambda point, workload: None
+        )
+        tune(first)
+        first.store.close()
+        self.assertEqual(len(first.driver.measured), 6)
+
+        second = _build_task(self.tmp, strategy=GridStrategy())
+        result = tune(second)
+
+        self.assertEqual(len(second.driver.measured), 6)
+        self.assertEqual(len(second.store.history()), 6)
+        self.assertIsNotNone(result.best)
+
+    def test_a_resume_keeps_a_point_the_space_rejected(self):
+        """An infeasible verdict comes from the space, so a rerun repeats it."""
+        first = _build_task(self.tmp, strategy=GridStrategy(), rules=[_RejectTp2()])
+        tune(first)
+        first.store.close()
+
+        second = _build_task(self.tmp, strategy=GridStrategy(), rules=[_RejectTp2()])
+        tune(second)
+
+        self.assertEqual(len(second.driver.measured), 0)
+
     def test_a_resumed_grid_runs_only_what_is_left(self):
         first = _build_task(
             self.tmp, strategy=GridStrategy(), budget=Budget(max_trials=2)

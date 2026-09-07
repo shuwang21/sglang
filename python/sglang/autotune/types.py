@@ -212,6 +212,18 @@ class TrialStatus(str, Enum):
         return self in (TrialStatus.OK, TrialStatus.PRUNED)
 
     @property
+    def is_settled(self) -> bool:
+        """Whether a resumed run may keep this verdict instead of rerunning.
+
+        A failure is not settled. It is as often the environment or a bug in
+        the harness as a property of the config, and a resume that trusts one
+        can never recover from a bad first attempt: the point counts as
+        proposed, so the search reports itself exhausted without running
+        anything.
+        """
+        return self in (TrialStatus.OK, TrialStatus.PRUNED, TrialStatus.INFEASIBLE)
+
+    @property
     def is_rankable(self) -> bool:
         return self is TrialStatus.OK
 
