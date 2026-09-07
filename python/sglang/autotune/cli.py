@@ -158,6 +158,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Reject a candidate whose p99 TTFT exceeds this.",
     )
     serve.add_argument(
+        "--preshard",
+        action="store_true",
+        help=(
+            "Cache post-process weights so later trials skip the load. Writes "
+            "under <model_path>/presharded/; the first launch pays to build it."
+        ),
+    )
+    serve.add_argument(
         "--extra-server-arg",
         action="append",
         default=[],
@@ -269,6 +277,7 @@ def build_serve_task(args: argparse.Namespace) -> TuneTask:
         server_timeout_s=args.server_timeout,
         extra_server_args=args.extra_server_arg,
         log_dir=args.output_dir / "logs",
+        preshard=args.preshard,
     )
     workload = Workload(
         name=args.dataset_name,

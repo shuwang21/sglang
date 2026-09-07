@@ -7,6 +7,7 @@ register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 import unittest
 
 from sglang.autotune.driver.serving import (
+    ServingDriver,
     _classify,
     _reason,
     render_server_flags,
@@ -93,3 +94,21 @@ class TestClassifyFailure(CustomTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestServerArgs(CustomTestCase):
+    def test_preshard_is_off_unless_asked(self):
+        """The cache lands inside the model directory, so it is opt-in."""
+        point = Point({"tp_size": 2})
+        self.assertNotIn("presharded", ServingDriver("m")._server_args(point))
+        self.assertIn(
+            "presharded", ServingDriver("m", preshard=True)._server_args(point)
+        )
+
+    def test_the_rendered_command_matches_what_is_launched(self):
+        """`best.sh` that omits a flag the trial ran with is a wrong answer."""
+        driver = ServingDriver("m", preshard=True, extra_server_args=["--log-level"])
+        point = Point({"tp_size": 2})
+        rendered = driver.render_launch_command(point)
+        for flag in driver._server_args(point):
+            self.assertIn(flag, rendered)

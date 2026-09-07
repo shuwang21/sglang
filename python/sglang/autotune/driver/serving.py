@@ -102,7 +102,17 @@ def render_server_flags(point: Point) -> List[str]:
 
 @register_driver("serving")
 class ServingDriver(MeasurementDriver):
-    """One trial: launch, load, measure, tear down."""
+    """One trial: launch, load, measure, tear down.
+
+    A sweep launches the same model tens of times and pays its weight load
+    every time, which for a large model is most of a trial. `--load-format
+    presharded` caches the post-process weights under a signature over
+    parallelism, quantization and dtype -- none of which the tuned knobs touch
+    -- so the whole sweep shares one dump. It is opt-in because that cache is
+    written inside the model directory, and because the first launch pays for
+    it; measurements are unaffected either way, since throughput is taken
+    after the server is healthy.
+    """
 
     provides: Tuple[str, ...] = (
         *_FULL_RUN_METRICS,
@@ -119,8 +129,10 @@ class ServingDriver(MeasurementDriver):
         extra_server_args: Sequence[str] = (),
         extra_bench_args: Sequence[str] = (),
         log_dir: Optional[Path] = None,
+        preshard: bool = False,
     ) -> None:
         self.model_path = model_path
+        self.preshard = preshard
         self.steady_state_ratio = steady_state_ratio
         self.server_timeout_s = server_timeout_s
         self.extra_server_args = list(extra_server_args)
@@ -166,7 +178,7 @@ class ServingDriver(MeasurementDriver):
                 self.model_path,
                 base_url,
                 timeout=launch_timeout,
-                other_args=render_server_flags(trial.point) + self.extra_server_args,
+                other_args=self._server_args(trial.point),
                 env=slot.env() or None,
                 return_stdout_stderr=(
                     (logs["server_log"], logs["server_err"]) if logs else None
@@ -297,8 +309,15 @@ class ServingDriver(MeasurementDriver):
         )
         return [launch, " ".join(bench)]
 
-    def render_launch_command(self, point: Point) -> str:
+    def _server_args(self, point: Point) -> List[str]:
+        """Launch flags for one candidate, including the run-wide additions."""
         flags = render_server_flags(point) + self.extra_server_args
+        if self.preshard:
+            flags += ["--load-format", "presharded"]
+        return flags
+
+    def render_launch_command(self, point: Point) -> str:
+        flags = self._server_args(point)
         return " ".join(
             ["python -m sglang.launch_server", "--model-path", self.model_path, *flags]
         )
