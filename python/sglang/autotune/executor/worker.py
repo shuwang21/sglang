@@ -6,12 +6,16 @@ process touches CUDA, so the pinning must happen at spawn; the serving
 benchmark client keeps its arguments in a module global; and a trial that
 takes its process down with it must not take the run with it.
 
-The protocol is length-prefixed pickle over stdin/stdout, which keeps stderr
-free for the child's own logs and the server output it tees.
+Requests arrive on stdin; replies go out on a dedicated inherited fd, named by
+``SGLANG_AUTOTUNE_REPLY_FD``. Not stdout: a serving driver tees its server's
+output to this process's stdout, and log text interleaved with a
+length-prefixed pickle stream corrupts it. Leaving stdout and stderr alone also
+means the child's logs reach the terminal, where a run in progress is visible.
 """
 
 from __future__ import annotations
 
+import os
 import pickle
 import struct
 import sys
@@ -21,7 +25,7 @@ from typing import Any, Optional
 
 from sglang.autotune.types import FailureKind, Measurement, TrialStatus
 
-__all__ = ["read_message", "write_message", "main"]
+__all__ = ["read_message", "write_message", "main", "REPLY_FD_ENV"]
 
 _HEADER = struct.Struct("!I")
 
@@ -45,8 +49,12 @@ def write_message(stream: Any, obj: Any) -> None:
     stream.flush()
 
 
+REPLY_FD_ENV = "SGLANG_AUTOTUNE_REPLY_FD"
+
+
 def main() -> int:
-    stdin, stdout = sys.stdin.buffer, sys.stdout.buffer
+    stdin = sys.stdin.buffer
+    replies = os.fdopen(int(os.environ[REPLY_FD_ENV]), "wb")
 
     setup = read_message(stdin)
     if setup is None:
@@ -55,7 +63,7 @@ def main() -> int:
     # Per process, not per run: the kernel driver publishes ServerArgs and sets
     # the default device here, and both are process-global.
     driver.prepare(setup["workloads"])
-    write_message(stdout, {"ready": True})
+    write_message(replies, {"ready": True})
 
     while True:
         submission = read_message(stdin)
@@ -76,7 +84,7 @@ def main() -> int:
                 started_at=started,
                 duration_s=time.time() - started,
             )
-        write_message(stdout, {"measurement": measurement})
+        write_message(replies, {"measurement": measurement})
 
 
 if __name__ == "__main__":

@@ -53,6 +53,13 @@ class TestPoolExecutor(unittest.TestCase):
     def test_trials_actually_overlap(self):
         """Four one-second trials on four slots take about one second."""
         with _pool(4, MockDriver(sleep_metrics)) as pool:
+            # Warm the slots first. A worker spends seconds importing sglang,
+            # which is neither what this asserts nor bounded by anything the
+            # pool controls.
+            for _ in range(4):
+                pool.submit(_trial(0.01))
+            list(pool.drain(block=True))
+
             started = time.time()
             for _ in range(4):
                 pool.submit(_trial(1.0))
@@ -61,9 +68,8 @@ class TestPoolExecutor(unittest.TestCase):
 
         self.assertEqual(len(results), 4)
         self.assertTrue(all(m.status is TrialStatus.OK for m in results))
-        # Serial would be 4s. Allow generously for process startup; the claim
-        # is that they ran together, not that the machine is fast.
-        self.assertLess(elapsed, 3.0)
+        # Serial would be 4s.
+        self.assertLess(elapsed, 2.0)
 
     def test_a_slow_trial_does_not_hold_up_its_neighbours(self):
         """Reading slots in turn would serialise them behind the slowest."""

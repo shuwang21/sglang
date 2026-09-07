@@ -8,11 +8,14 @@ import select
 import signal
 import subprocess
 import sys
-import tempfile
 from typing import Dict, Iterator, List, Optional, Sequence
 
 from sglang.autotune.executor.base import Executor, PruneCheck, Submission, TrialSlot
-from sglang.autotune.executor.worker import read_message, write_message
+from sglang.autotune.executor.worker import (
+    REPLY_FD_ENV,
+    read_message,
+    write_message,
+)
 from sglang.autotune.measure import MeasurementDriver
 from sglang.autotune.registry import register_executor
 from sglang.autotune.types import (
@@ -73,33 +76,45 @@ class _Worker:
         # reads CUDA_VISIBLE_DEVICES when it first initialises CUDA, and by
         # then a forked child has already inherited the parent's context.
         env = {**os.environ, **slot.env()}
-        self._errors = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
+        # Replies travel on their own fd so the child's stdout stays free for
+        # the server output a driver tees there; sharing it would splice log
+        # text into a length-prefixed pickle stream. Inheriting stdout and
+        # stderr is also what makes a running trial visible.
+        reply_r, reply_w = os.pipe()
         self.process = subprocess.Popen(
             [sys.executable, "-m", _WORKER_MODULE],
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=self._errors,
-            env=env,
+            env={**env, REPLY_FD_ENV: str(reply_w)},
+            pass_fds=(reply_w,),
             # Its own process group, so a hard kill takes the server the driver
             # launched with it. A worker blocked inside measure() cannot run
             # its own teardown, and an orphaned server holds a port and the
             # GPU against every later trial in this slot.
             start_new_session=True,
         )
+        os.close(reply_w)
+        self.replies = os.fdopen(reply_r, "rb")
+        self.ready = False
         write_message(
             self.process.stdin,
             {"driver": driver, "slot": slot, "workloads": list(workloads)},
         )
-        if read_message(self.process.stdout) is None:
-            raise RuntimeError(
-                f"slot {slot.index} worker died during setup:\n{self.stderr_tail()}"
-            )
 
-    def stderr_tail(self, limit: int = 2000) -> str:
-        """What the child said before it stopped talking."""
-        self._errors.flush()
-        self._errors.seek(0)
-        return self._errors.read()[-limit:]
+    def await_ready(self) -> None:
+        """Block until the child has imported and prepared. Spawn first.
+
+        Separate from the constructor so a pool starts its slots in parallel:
+        a worker spends seconds importing sglang before it says anything, and
+        waiting for each one in turn puts slot count times that in front of the
+        first trial.
+        """
+        if self.ready:
+            return
+        if read_message(self.replies) is None:
+            raise RuntimeError(
+                f"slot {self.slot.index} worker died during setup; its output is above"
+            )
+        self.ready = True
 
     @property
     def busy(self) -> bool:
@@ -116,7 +131,7 @@ class _Worker:
         """Read the finished measurement. Only call once the pipe is readable."""
         if self.trial is None:
             return None
-        reply = read_message(self.process.stdout)
+        reply = read_message(self.replies)
         trial, self.trial = self.trial, None
         if reply is None:
             # The pipe closed, so the child is gone: an OOM kill or a segfault
@@ -125,10 +140,7 @@ class _Worker:
                 trial=trial,
                 status=TrialStatus.FAILED,
                 failure=FailureKind.SERVER_CRASH,
-                message=(
-                    f"slot {self.slot.index} worker exited during the trial:\n"
-                    f"{self.stderr_tail()}"
-                ),
+                message=f"slot {self.slot.index} worker exited during the trial",
             )
         return reply["measurement"]
 
@@ -140,7 +152,7 @@ class _Worker:
             except subprocess.TimeoutExpired:
                 self._kill_group()
                 self.process.wait(timeout=10)
-        for handle in (self.process.stdin, self.process.stdout, self._errors):
+        for handle in (self.process.stdin, self.replies):
             if handle is not None and not handle.closed:
                 handle.close()
 
@@ -211,19 +223,24 @@ class PoolExecutor(Executor):
     def _dispatch(self) -> None:
         if self._cancelled:
             return
+        # Every slot at once, before waiting on any of them: a worker spends
+        # seconds importing sglang before it says it is ready, and the
+        # orchestrator submits one trial at a time, so starting a slot only
+        # when its first trial arrives puts every slot's import end to end in
+        # front of the run.
+        for slot in self.slots:
+            if slot.index in self._workers:
+                continue
+            self._workers[slot.index] = _Worker(
+                slot, self.driver, self.workloads, grace_s=self.close_grace_s
+            )
+            logger.info("slot %d on GPU %s", slot.index, slot.visible_devices or "-")
         for slot in self.slots:
             if not self._queue:
                 return
-            worker = self._workers.get(slot.index)
-            if worker is None:
-                worker = _Worker(
-                    slot, self.driver, self.workloads, grace_s=self.close_grace_s
-                )
-                self._workers[slot.index] = worker
-                logger.info(
-                    "slot %d on GPU %s", slot.index, slot.visible_devices or "-"
-                )
+            worker = self._workers[slot.index]
             if not worker.busy:
+                worker.await_ready()
                 worker.send(self._queue.pop(0))
 
     def drain(self, block: bool = True) -> Iterator[Measurement]:
@@ -238,7 +255,7 @@ class PoolExecutor(Executor):
             )
 
         while True:
-            busy = {w.process.stdout: w for w in self._workers.values() if w.busy}
+            busy = {w.replies: w for w in self._workers.values() if w.busy}
             if not busy:
                 return
             # Waiting on whichever pipe speaks first, rather than on each in
