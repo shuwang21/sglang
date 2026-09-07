@@ -44,6 +44,8 @@ class Orchestrator:
         self.task = task
         self.reporters = list(reporters)
         self._interrupted = False
+        self._completed = 0
+        self._total = 0
         self._partial_reason: Optional[str] = None
         self._previous_handlers: Dict[int, object] = {}
 
@@ -57,6 +59,7 @@ class Orchestrator:
 
         started_at = time.time()
         task.budget.start(started_at)
+        self._total = task.estimated_trials()
         task.output_dir.mkdir(parents=True, exist_ok=True)
 
         # One dataset materialization for the whole run: every candidate must
@@ -198,16 +201,23 @@ class Orchestrator:
             if task.store is not None and extra.key in task.store:
                 continue
             self._observe(extra)
-        if improved:
-            logger.info(
-                "new best: %s (%s)",
-                measurement.trial.point,
-                ", ".join(f"{k}={v:g}" for k, v in sorted(measurement.metrics.items())),
+        self._completed += 1
+        logger.info("%s", self._progress_line(measurement, improved=improved))
+
+    def _progress_line(self, measurement: Measurement, *, improved: bool) -> str:
+        """One line per trial: a silent run looks the same as a hung one."""
+        seen = f"{self._completed}/{self._total}" if self._total else self._completed
+        bucket = measurement.trial.bucket or measurement.trial.workload.name
+        if measurement.failure is not None:
+            body = f"{measurement.failure.value}: {measurement.message}"
+        elif measurement.metrics:
+            body = ", ".join(
+                f"{k}={v:g}" for k, v in sorted(measurement.metrics.items())
             )
-        elif measurement.failure is not None:
-            logger.info(
-                "trial failed (%s): %s", measurement.failure.value, measurement.message
-            )
+        else:
+            body = measurement.message or measurement.status.value
+        best = " <- best" if improved else ""
+        return f"[{seen}] {bucket} {measurement.status.value} {body}{best}"
 
     # ---- finalization ----------------------------------------------------
 
