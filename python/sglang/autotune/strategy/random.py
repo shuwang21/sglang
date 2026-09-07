@@ -53,6 +53,9 @@ class RandomStrategy(Strategy):
     def is_exhausted(self) -> bool:
         return self._space_exhausted or self._cap_reached()
 
+    def estimated_points(self) -> Optional[int]:
+        return self.max_points
+
     def describe_plan(self) -> str:
         cap = "unbounded" if self.max_points is None else self.max_points
         # setup() binds the space; a plan printed before then must not claim the

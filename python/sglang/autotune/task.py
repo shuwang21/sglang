@@ -136,9 +136,20 @@ class TuneTask:
         return errors
 
     def estimated_trials(self) -> int:
-        """Upper bound used by ``autotune plan`` to state a run's cost."""
+        """Upper bound used by ``autotune plan`` to state a run's cost.
+
+        A point costs one trial per (workload, load); the strategy says how
+        many points it means to try, falling back to the whole space when it
+        is unbounded. Zero means neither bound is known.
+        """
         per_point = len(self.workloads) * self.load_plan.estimated_runs
-        return (self.budget.max_trials or 0) or per_point
+        points = self.strategy.estimated_points()
+        if points is None:
+            points = self.space.cardinality
+        total = per_point * points if points is not None else 0
+        if self.budget.max_trials is None:
+            return total
+        return min(total, self.budget.max_trials) if total else self.budget.max_trials
 
 
 @dataclass

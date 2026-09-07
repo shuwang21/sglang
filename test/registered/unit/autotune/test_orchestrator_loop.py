@@ -109,6 +109,35 @@ class TestOrchestratorLoop(CustomTestCase):
         self.assertEqual(result.best_point.get("tp_size"), 4)
         self.assertEqual(result.best_point.get("backend"), "fa3")
 
+    def test_estimated_trials_counts_points_times_workloads(self):
+        """`plan` reported one point's cost as the whole run's.
+
+        The estimate multiplied workloads by load settings and stopped, so a
+        4-point search over 2 workloads was announced as 2 trials instead of 8
+        -- the one number a user reads before committing GPU hours.
+        """
+        one = _build_task(self.tmp, max_points=3)
+        self.assertEqual(one.estimated_trials(), 3)
+
+        two = _build_task(
+            self.tmp,
+            max_points=4,
+            workloads=[Workload(name="a", kind="k"), Workload(name="b", kind="k")],
+        )
+        self.assertEqual(two.estimated_trials(), 8)
+
+        # No cap on the strategy falls back to the space itself: 3 x 2 knobs.
+        self.assertEqual(_build_task(self.tmp).estimated_trials(), 6)
+
+        # A trial budget only ever lowers the estimate: 4 x 2 = 8, capped at 5.
+        capped = _build_task(
+            self.tmp,
+            max_points=4,
+            budget=Budget(max_trials=5),
+            workloads=[Workload(name="a", kind="k"), Workload(name="b", kind="k")],
+        )
+        self.assertEqual(capped.estimated_trials(), 5)
+
     def test_sla_violation_cannot_outrank_a_compliant_candidate(self):
         result = tune(
             _build_task(

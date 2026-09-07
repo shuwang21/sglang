@@ -110,10 +110,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"batch sizes: {args.batch_size}")
     print(f"space: {task.space.cardinality} tile configs")
     print(f"trials: {task.estimated_trials()}")
-    print(f"search: {task.strategy.describe_plan()}")
     print(f"config file: {shape.config_filename}")
     print(f"output: {args.output_dir}")
     if args.dry_run:
+        # Binding the space is what lets the strategy describe its plan; the
+        # orchestrator does it on a real run, and does it exactly once.
+        task.strategy.setup(
+            space=task.space,
+            objective=task.objective,
+            constraints=task.constraints,
+            budget=task.budget,
+        )
+        print(f"search: {task.strategy.describe_plan()}")
         return 0
 
     if not torch.cuda.is_available():

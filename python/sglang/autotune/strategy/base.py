@@ -156,6 +156,15 @@ class Strategy(ABC):
         """
         return False
 
+    def estimated_points(self) -> Optional[int]:
+        """How many points this strategy intends to evaluate, if it knows.
+
+        ``None`` means unbounded or not yet decided; a planner then has only
+        the space's own size to go on. Cost is this times the trials each point
+        costs, which is the task's to know, not the strategy's.
+        """
+        return None
+
     def describe_plan(self) -> str:
         """One-paragraph human summary, printed by ``autotune plan``.
 
