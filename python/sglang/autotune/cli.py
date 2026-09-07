@@ -298,13 +298,14 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 
 def _preview(task: TuneTask, limit: int = 5) -> Sequence:
-    """First few feasible points, so a plan shows what will actually be tried."""
-    out = []
-    for point in task.space.grid():
-        out.append(point)
-        if len(out) >= limit:
-            break
-    return out
+    """The points the strategy would actually propose first.
+
+    Enumerating the space instead would show declaration order, which only a
+    grid search follows; for a sampling strategy that is a different set of
+    points than the run will try. Safe to consume the strategy here because a
+    dry run stops right after.
+    """
+    return task.strategy.ask(limit)
 
 
 if __name__ == "__main__":
