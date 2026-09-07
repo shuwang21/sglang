@@ -165,6 +165,7 @@ class FusedMoeTritonDriver(MeasurementDriver):
         import triton
 
         return Provenance(
+            model=self.shape.model_path,
             torch_version=torch.__version__,
             cuda_version=torch.version.cuda or "",
             gpu_name=torch.cuda.get_device_name(0),

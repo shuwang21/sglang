@@ -67,7 +67,21 @@ class Orchestrator:
         workloads = list(task.driver.prepare(task.workloads))
         task.provenance = task.driver.provenance()
 
-        history = list(task.store.history()) if (task.store and task.resume) else []
+        recorded = list(task.store.history()) if (task.store and task.resume) else []
+        # A measurement taken against another model, GPU, or build says nothing
+        # about this run. The store still dedups on the full trial key, but the
+        # strategy's seen-set is keyed on the point alone, so stale history
+        # would stop it proposing anything at all.
+        history = [
+            m
+            for m in recorded
+            if m.trial.provenance_fingerprint == task.provenance.fingerprint
+        ]
+        if len(history) != len(recorded):
+            logger.info(
+                "ignoring %d trials recorded in a different environment",
+                len(recorded) - len(history),
+            )
         if history:
             logger.info("resuming with %d recorded trials", len(history))
         task.strategy.setup(

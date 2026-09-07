@@ -67,8 +67,9 @@ def _build_task(
     workloads=None,
     load_plan=None,
     trial_seconds=1.0,
+    provenance_model="mock-model",
 ) -> TuneTask:
-    driver = MockDriver(metric_fn, trial_seconds=trial_seconds)
+    driver = MockDriver(metric_fn, trial_seconds=trial_seconds, model=provenance_model)
     kwargs = {}
     if bucket_of is not None:
         kwargs["bucket_of"] = bucket_of
@@ -209,6 +210,24 @@ class TestOrchestratorLoop(CustomTestCase):
         self.assertEqual(measured_first, 2)
         self.assertEqual(len(second.driver.measured), 0)
         self.assertEqual(len(second.store.history()), 2)
+
+    def test_a_different_model_is_a_different_trial(self):
+        """A run reused another model's recorded results.
+
+        Only the driver knows which model a trial measured, and the trial key
+        covered the knobs, the workload, and the environment but not that. Two
+        runs over the same knob grid with different models therefore collided
+        in the store, and the second reported the first's numbers as its own.
+        """
+        first = _build_task(self.tmp, provenance_model="model-a")
+        tune(first)
+        first.store.close()
+
+        second = _build_task(self.tmp, provenance_model="model-b")
+        tune(second)
+
+        self.assertEqual(len(second.driver.measured), 6)
+        self.assertEqual(len(second.store.history()), 12)
 
     def test_store_round_trips_the_trial_key(self):
         task = _build_task(self.tmp)

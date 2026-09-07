@@ -40,8 +40,10 @@ class MockDriver(MeasurementDriver):
         provides: Sequence[str] = ("output_throughput", "p99_ttft_ms"),
         trial_seconds: float = 1.0,
         failure: FailureKind = FailureKind.OOM,
+        model: str = "mock-model",
     ) -> None:
         self.metric_fn = metric_fn
+        self.model = model
         # Instance attribute shadowing the class-level tuple, so two mock
         # drivers in one test can declare different metric sets.
         self.provides: Tuple[str, ...] = tuple(provides)
@@ -50,7 +52,7 @@ class MockDriver(MeasurementDriver):
         self.measured: list[Trial] = []
 
     def provenance(self) -> Provenance:
-        return Provenance(gpu_name="mock", gpu_count=1)
+        return Provenance(model=self.model, gpu_name="mock", gpu_count=1)
 
     def measure(
         self,

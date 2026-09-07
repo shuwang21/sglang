@@ -119,6 +119,7 @@ class ServingDriver(MeasurementDriver):
         import sglang
 
         return Provenance(
+            model=self.model_path,
             sglang_version=sglang.__version__,
             torch_version=torch.__version__,
             cuda_version=torch.version.cuda or "",

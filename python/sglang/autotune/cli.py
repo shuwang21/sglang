@@ -295,6 +295,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
 
     result = tune(task, reporters=reporters)
+    if not result.best_by_bucket:
+        counts = task.store.count_by_status() if task.store else {}
+        tally = ", ".join(f"{n} {name}" for name, n in sorted(counts.items()))
+        print(f"no valid config from {len(result.measurements)} trials: {tally}")
+        print(f"see {args.output_dir}/summary.md and logs/ for why")
+        return 1
+
     metric = task.objective.metric_names[0]
     for bucket in result.buckets:
         best = result.best_by_bucket.get(bucket)

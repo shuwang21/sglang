@@ -161,13 +161,16 @@ FULL_FIDELITY = Fidelity()
 
 @dataclass(frozen=True)
 class Provenance:
-    """Environment fingerprint recorded with every trial.
+    """What must match for a recorded trial to still apply.
 
     Results are only reused across runs when this matches. Stale reuse across a
     kernel or driver change is the failure mode most likely to produce a
-    confidently wrong recommendation.
+    confidently wrong recommendation, and so is reuse across a change of model:
+    the knobs and the workload can be identical while the thing being measured
+    is not.
     """
 
+    model: str = ""
     git_commit: str = ""
     sglang_version: str = ""
     torch_version: str = ""
@@ -181,6 +184,7 @@ class Provenance:
     def fingerprint(self) -> str:
         return stable_hash(
             {
+                "model": self.model,
                 "git": self.git_commit,
                 "sglang": self.sglang_version,
                 "torch": self.torch_version,
