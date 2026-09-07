@@ -206,9 +206,7 @@ class ServingDriver(MeasurementDriver):
             if full.get(name) is not None
         }
         for name in _STEADY_METRICS:
-            value = getattr(steady, name, None)
-            if value is not None:
-                metrics[f"steady_{name}"] = float(value)
+            metrics[f"steady_{name}"] = float(getattr(steady, name))
         # Not a BenchmarkMetrics field: a run where a third of the requests
         # failed can still post a fine throughput.
         requested = workload.params.get("num_prompts")
@@ -241,7 +239,11 @@ class ServingDriver(MeasurementDriver):
         ]
         if args.max_concurrency is not None:
             bench.append(f"--max-concurrency {args.max_concurrency}")
-        return [self.render_launch_command(trial.point), " ".join(bench)]
+        launch = (
+            f"{self.render_launch_command(trial.point)} "
+            f"--host {slot.host} --port {slot.port}"
+        )
+        return [launch, " ".join(bench)]
 
     def render_launch_command(self, point: Point) -> str:
         flags = render_server_flags(point) + self.extra_server_args

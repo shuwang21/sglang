@@ -167,6 +167,7 @@ def _shared(
     load_plan,
     constraints=(),
     bucket_of=None,
+    slot=None,
 ) -> TuneTask:
     kwargs: Dict[str, Any] = {} if bucket_of is None else {"bucket_of": bucket_of}
     return TuneTask(
@@ -178,7 +179,7 @@ def _shared(
         space=space,
         strategy=strategy,
         driver=driver,
-        executor=LocalExecutor(driver),
+        executor=LocalExecutor(driver, slot=slot),
         objective=objective,
         constraints=constraints,
         store=JsonlStore(args.output_dir / "trials.jsonl"),
@@ -245,6 +246,7 @@ def build_serve_task(args: argparse.Namespace) -> TuneTask:
         constraints=constraints,
         workloads=[workload],
         load_plan=LoadPlan(fixed=(LoadPoint(max_concurrency=args.max_concurrency),)),
+        slot=TrialSlot(index=0, host=args.host, port=args.port),
     )
 
 
@@ -314,7 +316,7 @@ def _print_first_trial(task: TuneTask, points: Sequence) -> None:
         load=task.load_plan.fixed[0] if task.load_plan.fixed else LoadPoint(),
         bucket=task.bucket_of(task.workloads[0], LoadPoint()),
     )
-    lines = task.driver.describe_trial(trial, TrialSlot(index=0))
+    lines = task.driver.describe_trial(trial, task.executor.slot)
     if not lines:
         return
     print("first trial:")
