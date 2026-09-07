@@ -131,11 +131,17 @@ class MoeShape:
 
 @register_driver("fused_moe_triton")
 class FusedMoeTritonDriver(MeasurementDriver):
-    """Times one tile config against the resolved shape."""
+    """Times one tile config against the resolved shape.
+
+    ``num_iters`` defaults to the standalone tuner's search setting, not its
+    reporting one: each measurement replays a graph of ten calls that many
+    times, so 100 costs a thousand kernel launches per trial -- ten seconds at
+    a large batch size, for precision a search does not need.
+    """
 
     provides: Tuple[str, ...] = (KERNEL_TIME_US,)
 
-    def __init__(self, shape: MoeShape, *, num_iters: int = 100, seed: int = 0) -> None:
+    def __init__(self, shape: MoeShape, *, num_iters: int = 10, seed: int = 0) -> None:
         self.shape = shape
         self.num_iters = num_iters
         self.seed = seed

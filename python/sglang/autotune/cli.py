@@ -59,7 +59,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_MAX_CONFIGS,
         help="Tile configs to sample per batch size. 0 searches the whole space.",
     )
-    parser.add_argument("--num-iters", type=int, default=100)
+    parser.add_argument(
+        "--num-iters",
+        type=int,
+        default=10,
+        help="Timed replays per trial; each replays 10 kernel calls.",
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("./autotune-moe"))
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--budget-hours", type=float, default=None)
