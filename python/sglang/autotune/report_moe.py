@@ -18,6 +18,18 @@ from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_config impor
 __all__ = ["MoeConfigReporter"]
 
 
+def _version_dir() -> str:
+    """The `triton_X_Y_Z` level `get_moe_configs` resolves under `configs/`.
+
+    A config tuned on one Triton can lose performance on another, so the
+    version is part of the lookup key, not decoration: writing beside it means
+    the runtime never finds the file.
+    """
+    import triton
+
+    return f"triton_{triton.__version__.replace('.', '_')}"
+
+
 @register_reporter("moe_config")
 class MoeConfigReporter(Reporter):
     """Writes ``configs/E=..,N=..,device_name=...json`` and reads it back.
@@ -45,9 +57,7 @@ class MoeConfigReporter(Reporter):
         if not best:
             return []
 
-        # The runtime resolves <dir>/configs/<file>, so the tuned tree has to
-        # carry that level for SGLANG_MOE_CONFIG_DIR to find it.
-        config_dir = output_dir / "configs"
+        config_dir = output_dir / "configs" / _version_dir()
         config_dir.mkdir(parents=True, exist_ok=True)
         path = config_dir / driver.shape.config_filename
         path.write_text(json.dumps(best, indent=4) + "\n", encoding="utf-8")
