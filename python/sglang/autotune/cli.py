@@ -39,7 +39,8 @@ from sglang.autotune.space.simple import SimpleSpace
 from sglang.autotune.store import JsonlStore
 from sglang.autotune.strategy.random import RandomStrategy
 from sglang.autotune.task import HardwareSpec, ModelSpec, TuneTask
-from sglang.autotune.types import Budget, LoadPoint, Workload
+from sglang.autotune.executor.base import TrialSlot
+from sglang.autotune.types import Budget, LoadPoint, Trial, Workload
 
 logger = logging.getLogger("sglang.autotune")
 
@@ -272,8 +273,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             budget=task.budget,
         )
         print(f"search: {task.strategy.describe_plan()}")
-        for point in _preview(task):
+        points = _preview(task)
+        for point in points:
             print(f"  {point}")
+        _print_first_trial(task, points)
         return 0
 
     if not torch.cuda.is_available():
@@ -299,6 +302,24 @@ def main(argv: Optional[List[str]] = None) -> int:
             continue
         print(f"{label}: {best.measurement.metric(metric):.2f}  {best.point}")
     return 0 if result.best_by_bucket else 1
+
+
+def _print_first_trial(task: TuneTask, points: Sequence) -> None:
+    """Show what one point turns into, as the driver would run it."""
+    if not points:
+        return
+    trial = Trial(
+        point=points[0],
+        workload=task.workloads[0],
+        load=task.load_plan.fixed[0] if task.load_plan.fixed else LoadPoint(),
+        bucket=task.bucket_of(task.workloads[0], LoadPoint()),
+    )
+    lines = task.driver.describe_trial(trial, TrialSlot(index=0))
+    if not lines:
+        return
+    print("first trial:")
+    for line in lines:
+        print(f"  {line}")
 
 
 def _preview(task: TuneTask, limit: int = 5) -> Sequence:

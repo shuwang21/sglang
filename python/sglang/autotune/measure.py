@@ -134,6 +134,15 @@ class MeasurementDriver(ABC):
 
     # ---- reporting helpers ----------------------------------------------
 
+    def describe_trial(self, trial: Trial, slot: TrialSlot) -> Sequence[str]:
+        """Commands this trial would run, for a plan to print before spending.
+
+        A driver that builds them through the real parsers turns a mistyped
+        flag into a dry-run failure rather than one that waits for a model to
+        load. Default is empty: a driver with no commands to show says nothing.
+        """
+        return ()
+
     def render_launch_command(self, point: Point) -> Optional[str]:
         """The command a user would run to reproduce this point, if any.
 

@@ -221,6 +221,28 @@ class ServingDriver(MeasurementDriver):
             TrialStatus.TIMEOUT if isinstance(exc, TimeoutError) else TrialStatus.FAILED
         )
 
+    def describe_trial(self, trial: Trial, slot: TrialSlot) -> List[str]:
+        """The two commands this trial is, for a plan to show before spending.
+
+        Building the benchmark Namespace here is the point: it goes through the
+        real parser, so a flag this driver gets wrong fails on a dry run rather
+        than after a server has come up.
+        """
+        args = self._bench_args(trial, slot)
+        bench = [
+            "python -m sglang.benchmark.serving",
+            f"--backend {args.backend}",
+            f"--model {args.model}",
+            f"--host {args.host} --port {args.port}",
+            f"--dataset-name {args.dataset_name}",
+            f"--num-prompts {args.num_prompts}",
+            f"--random-input-len {args.random_input_len}",
+            f"--random-output-len {args.random_output_len}",
+        ]
+        if args.max_concurrency is not None:
+            bench.append(f"--max-concurrency {args.max_concurrency}")
+        return [self.render_launch_command(trial.point), " ".join(bench)]
+
     def render_launch_command(self, point: Point) -> str:
         flags = render_server_flags(point) + self.extra_server_args
         return " ".join(
