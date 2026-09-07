@@ -29,7 +29,6 @@ class RandomStrategy(Strategy):
     ) -> None:
         super().__init__(seed=seed, **options)
         self.max_points = max_points
-        self._proposed = 0
         self._baseline_sent = False
         self._space_exhausted = False
 
@@ -41,7 +40,6 @@ class RandomStrategy(Strategy):
                 self._space_exhausted = True
                 break
             self.state.mark_proposed(point)
-            self._proposed += 1
             points.append(point)
         return points
 
@@ -69,7 +67,9 @@ class RandomStrategy(Strategy):
         return f"random: up to {cap} draws from {total}, baseline first"
 
     def _cap_reached(self) -> bool:
-        return self.max_points is not None and self._proposed >= self.max_points
+        # Counts points the state already knows, so a resumed run honours the
+        # cap across invocations instead of drawing a fresh batch each time.
+        return self.max_points is not None and len(self.state.seen) >= self.max_points
 
     def _draw(self) -> Optional[Point]:
         if not self._baseline_sent:

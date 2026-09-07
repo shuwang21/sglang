@@ -191,6 +191,25 @@ class TestOrchestratorLoop(CustomTestCase):
         # the remaining three reach the driver.
         self.assertEqual(len(second.driver.measured), 3)
 
+    def test_point_cap_holds_across_a_resume(self):
+        """A resumed run drew a fresh batch instead of honouring the cap.
+
+        The strategy counted its own proposals in a per-process field, which
+        starts at zero, so `--max-configs 4` became "4 more each time": a run
+        resumed once measured 8 points and reported the planned 4.
+        """
+        first = _build_task(self.tmp, max_points=2)
+        tune(first)
+        first.store.close()
+        measured_first = len(first.driver.measured)
+
+        second = _build_task(self.tmp, max_points=2)
+        tune(second)
+
+        self.assertEqual(measured_first, 2)
+        self.assertEqual(len(second.driver.measured), 0)
+        self.assertEqual(len(second.store.history()), 2)
+
     def test_store_round_trips_the_trial_key(self):
         task = _build_task(self.tmp)
         tune(task)
