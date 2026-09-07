@@ -46,6 +46,38 @@ class Reporter(ABC):
         return self.emit(result, output_dir)
 
 
+@register_reporter("best_config")
+class BestConfigReporter(Reporter):
+    """`best.yaml` for `launch_server --config`, and `best.sh` beside it.
+
+    A result a human has to retype into a launch command has lost most of its
+    value, so the deliverable is the config file the runtime already loads.
+    Only a single-bucket run has one winner to emit; a bucketed run's
+    deliverable is the table its own reporter writes.
+    """
+
+    def emit(self, result: TuneResult, output_dir: Path) -> List[Path]:
+        import yaml
+
+        if result.best is None:
+            return []
+        driver = result.task.driver
+        config = driver.render_config(result.best.point)
+        if config is None:
+            return []
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        written = [output_dir / "best.yaml"]
+        written[0].write_text(yaml.safe_dump(dict(config), sort_keys=True), "utf-8")
+
+        command = driver.render_launch_command(result.best.point)
+        if command is not None:
+            path = output_dir / "best.sh"
+            path.write_text(f"#!/bin/sh\n{command}\n", encoding="utf-8")
+            written.append(path)
+        return written
+
+
 @register_reporter("markdown")
 class MarkdownReporter(Reporter):
     """``summary.md``: winners per bucket, leaderboards, and a failure digest."""
