@@ -8,6 +8,7 @@ field at its real default, so this driver cannot drift as flags are added.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import time
@@ -124,10 +125,16 @@ class ServingDriver(MeasurementDriver):
     every time, which for a large model is most of a trial. `--load-format
     presharded` caches the post-process weights under a signature over
     parallelism, quantization and dtype -- none of which the tuned knobs touch
-    -- so the whole sweep shares one dump. It is opt-in because that cache is
-    written inside the model directory, and because the first launch pays for
-    it; measurements are unaffected either way, since throughput is taken
-    after the server is healthy.
+    -- so the whole sweep shares one dump. It is opt-in because the first
+    launch pays for it; measurements are unaffected either way, since
+    throughput is taken after the server is healthy.
+
+    The dump goes under the run's own directory rather than the loader's
+    default of `<model_path>/presharded`. With a Hugging Face repo id that
+    default is a relative path, so it creates `./<org>/<model>/presharded` in
+    the working directory -- after which transformers resolves the repo id to
+    that directory, finds no config.json, and no later launch of that model
+    can start.
     """
 
     provides: Tuple[str, ...] = (
@@ -146,9 +153,11 @@ class ServingDriver(MeasurementDriver):
         extra_bench_args: Sequence[str] = (),
         log_dir: Optional[Path] = None,
         preshard: bool = False,
+        preshard_dir: Optional[Path] = None,
     ) -> None:
         self.model_path = model_path
         self.preshard = preshard
+        self.preshard_dir = preshard_dir
         self.steady_state_ratio = steady_state_ratio
         self.server_timeout_s = server_timeout_s
         self.extra_server_args = list(extra_server_args)
@@ -330,6 +339,9 @@ class ServingDriver(MeasurementDriver):
         flags = render_server_flags(point) + self.extra_server_args
         if self.preshard:
             flags += ["--load-format", "presharded"]
+            if self.preshard_dir is not None:
+                extra = {"presharded_path": str(self.preshard_dir.resolve())}
+                flags += ["--model-loader-extra-config", json.dumps(extra)]
         return flags
 
     def render_launch_command(self, point: Point) -> str:

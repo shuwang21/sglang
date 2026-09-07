@@ -4,8 +4,10 @@ from sglang.test.ci.ci_register import register_cpu_ci
 
 register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
+import json
 import os
 import unittest
+from pathlib import Path
 
 from sglang.autotune.driver.serving import (
     ServingDriver,
@@ -101,12 +103,30 @@ if __name__ == "__main__":
 
 class TestServerArgs(CustomTestCase):
     def test_preshard_is_off_unless_asked(self):
-        """The cache lands inside the model directory, so it is opt-in."""
+        """The first launch pays for the dump, so it is opt-in."""
         point = Point({"tp_size": 2})
         self.assertNotIn("presharded", ServingDriver("m")._server_args(point))
         self.assertIn(
             "presharded", ServingDriver("m", preshard=True)._server_args(point)
         )
+
+    def test_the_dump_never_lands_beside_a_repo_id(self):
+        """The loader defaults to <model_path>/presharded, a relative path for
+        a repo id. It created ./Qwen/Qwen2.5-0.5B-Instruct/presharded in the
+        working directory, and transformers then resolved the repo id to that
+        directory, found no config.json, and no launch of that model could
+        start again -- for every run on the machine, not just this one."""
+        driver = ServingDriver(
+            "Qwen/Qwen2.5-0.5B-Instruct",
+            preshard=True,
+            preshard_dir=Path("run-dir/presharded"),
+        )
+        args = driver._server_args(Point({"tp_size": 2}))
+        extra = json.loads(args[args.index("--model-loader-extra-config") + 1])
+        self.assertEqual(
+            extra["presharded_path"], str(Path("run-dir/presharded").resolve())
+        )
+        self.assertTrue(Path(extra["presharded_path"]).is_absolute())
 
     def test_the_rendered_command_matches_what_is_launched(self):
         """`best.sh` that omits a flag the trial ran with is a wrong answer."""

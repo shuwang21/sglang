@@ -294,6 +294,7 @@ def build_serve_task(args: argparse.Namespace) -> TuneTask:
         extra_server_args=args.extra_server_arg,
         log_dir=args.output_dir / "logs",
         preshard=args.preshard,
+        preshard_dir=args.output_dir / "presharded",
     )
     workload = Workload(
         name=args.dataset_name,
