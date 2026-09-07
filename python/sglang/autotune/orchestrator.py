@@ -132,7 +132,9 @@ class Orchestrator:
                     task.executor.submit(
                         trial,
                         timeout_s=task.budget.remaining_seconds(),
-                        prune_check=self._prune_check,
+                        prune_check=(
+                            self._prune_check if task.strategy.prunes else None
+                        ),
                     )
                     in_flight += 1
 

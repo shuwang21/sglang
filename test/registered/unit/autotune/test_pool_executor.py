@@ -10,11 +10,20 @@ from sglang.test.ci.ci_register import register_cpu_ci
 
 register_cpu_ci(est_time=30, suite="base-a-test-cpu")
 
+import tempfile
 import time
 import unittest
+from pathlib import Path
 
 from sglang.autotune.driver.mock import MockDriver, sleep_metrics
 from sglang.autotune.executor.pool import PoolExecutor, build_slots
+from sglang.autotune.measure import LoadPlan
+from sglang.autotune.objective import Direction, ScalarObjective
+from sglang.autotune.orchestrator import tune
+from sglang.autotune.space.simple import SimpleSpace
+from sglang.autotune.store import JsonlStore
+from sglang.autotune.strategy.grid import GridStrategy
+from sglang.autotune.task import HardwareSpec, ModelSpec, TuneTask
 from sglang.autotune.types import Point, Trial, TrialStatus, Workload
 
 WORKLOAD = Workload(name="w", kind="mock")
@@ -122,3 +131,56 @@ class TestBuildSlots(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPoolUnderTheOrchestrator(unittest.TestCase):
+    """The pool driven by the loop, not by direct submits.
+
+    Every earlier case called `submit` itself and so never carried what the
+    orchestrator actually sends. It sends a prune predicate unconditionally,
+    which the pool refuses, and a whole run died on the first trial.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _task(self, strategy=None) -> TuneTask:
+        driver = MockDriver(sleep_metrics)
+        return TuneTask(
+            name="pooled",
+            model=ModelSpec(path="mock/model"),
+            hardware=HardwareSpec(gpu_count=2, gpus_per_trial=1),
+            workloads=[WORKLOAD],
+            load_plan=LoadPlan(),
+            space=SimpleSpace({"seconds": [0.1, 0.2, 0.3, 0.4]}),
+            strategy=strategy or GridStrategy(),
+            driver=driver,
+            executor=PoolExecutor(driver, build_slots(2, 1), workloads=[WORKLOAD]),
+            objective=ScalarObjective(
+                metric="output_throughput", direction=Direction.MAXIMIZE
+            ),
+            store=JsonlStore(self.tmp / "trials.jsonl"),
+            output_dir=self.tmp,
+        )
+
+    def test_a_run_completes_through_the_pool(self):
+        result = tune(self._task())
+
+        self.assertEqual(len(result.measurements), 4)
+        self.assertTrue(all(m.status is TrialStatus.OK for m in result.measurements))
+        # Fastest point wins: throughput is 1/seconds.
+        self.assertAlmostEqual(result.best_point.get("seconds"), 0.1)
+
+    def test_a_pruning_strategy_is_still_refused(self):
+        class Pruner(GridStrategy):
+            prunes = True
+
+            def should_prune(self, point, partial_metrics):
+                return "no"
+
+        with self.assertRaises(NotImplementedError):
+            tune(self._task(strategy=Pruner()))

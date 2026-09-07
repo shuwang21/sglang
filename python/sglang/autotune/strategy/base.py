@@ -75,6 +75,12 @@ class Strategy(ABC):
 
     name: str = "strategy"
 
+    #: Whether :meth:`should_prune` decides anything. The orchestrator only
+    #: forwards the predicate when this is set, so an executor that cannot
+    #: carry a callable across a process boundary stays usable with the
+    #: strategies that never prune -- which is all of them today.
+    prunes: bool = False
+
     def __init__(self, seed: int = 0, **options: object) -> None:
         self.rng = random.Random(seed)
         self.options: Dict[str, object] = dict(options)
