@@ -2196,7 +2196,13 @@ class LoRAPathAction(argparse.Action):
             getattr(namespace, self.dest).append(lora_name)
 
 
-def cli_main():
+def build_parser() -> ArgumentParser:
+    """The CLI's own parser, so a caller can build a valid Namespace.
+
+    ``run_benchmark`` takes a Namespace whose expected fields are implied by
+    the parser and nothing else; a programmatic caller that hand-rolls one
+    silently drifts as flags are added.
+    """
     parser = ArgumentParser(description="Benchmark the online serving throughput.")
     parser.add_argument(
         "--backend",
@@ -2743,6 +2749,11 @@ def cli_main():
         default=None,
         help="Custom HTTP headers in Key=Value format. Example: --header MyHeader=MY_VALUE MyAnotherHeader=myanothervalue",
     )
+    return parser
+
+
+def cli_main():
+    parser = build_parser()
     args = parser.parse_args()
     _validate_parsed_gsp_args(parser, args)
     run_benchmark(args)
