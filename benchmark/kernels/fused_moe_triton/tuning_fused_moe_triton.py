@@ -36,7 +36,6 @@ from sglang.srt.server_args import (
     set_global_server_args_for_scheduler,
 )
 from sglang.srt.utils import get_device, is_hip, is_xpu
-from sglang.srt.utils.hf_transformers_utils import get_config
 
 _is_hip = is_hip()
 _is_xpu = is_xpu()
@@ -56,6 +55,7 @@ def benchmark_config(
     use_int4_w4a16: bool,
     per_channel_quant: bool,
     block_shape: List[int] = None,
+    is_dsv4: bool = False,
     num_iters: int = 100,
 ) -> float:
     init_dtype = torch.float16 if use_fp8_w8a8 else dtype
@@ -176,9 +176,6 @@ def benchmark_config(
         topk_output.router_logits.copy_(new_topk_output.router_logits)
 
     def run():
-        model_config = get_config(args.model, trust_remote_code=True)
-        architecture = model_config.architectures[0]
-        is_dsv4 = architecture == "DeepseekV4ForCausalLM"
         moe_runner_config = MoeRunnerConfig(
             inplace=True,
             swiglu_limit=10.0 if is_dsv4 else None,
@@ -243,10 +240,13 @@ def benchmark_config(
 
 @ray.remote(num_gpus=1)
 class BenchmarkWorker:
-    def __init__(self, seed: int, server_args: ServerArgs) -> None:
+    def __init__(
+        self, seed: int, server_args: ServerArgs, is_dsv4: bool = False
+    ) -> None:
         torch.set_default_device(get_device())
         torch.get_device_module().manual_seed_all(0)
         self.seed = seed
+        self.is_dsv4 = is_dsv4
         # Get the device ID to allocate tensors and kernels
         # on the respective GPU. Ray isolates each worker to a single visible
         # GPU via CUDA_VISIBLE_DEVICES, so the local ordinal is always 0. On
@@ -319,6 +319,7 @@ class BenchmarkWorker:
                 use_int4_w4a16,
                 per_channel_quant,
                 block_shape,
+                self.is_dsv4,
             )
         return config, kernel_time
 
@@ -361,6 +362,7 @@ class BenchmarkWorker:
                         use_int4_w4a16,
                         per_channel_quant,
                         block_shape,
+                        self.is_dsv4,
                         num_iters=10,
                     )
                 except (triton.runtime.autotuner.OutOfResources, RuntimeError):
@@ -407,7 +409,10 @@ def main(args: argparse.Namespace):
 
     ray.init()
     num_gpus = int(ray.available_resources()["GPU"])
-    workers = [BenchmarkWorker.remote(args.seed, server_args) for _ in range(num_gpus)]
+    is_dsv4 = model_config["architecture"] == "DeepseekV4ForCausalLM"
+    workers = [
+        BenchmarkWorker.remote(args.seed, server_args, is_dsv4) for _ in range(num_gpus)
+    ]
 
     def _distribute(method: str, inputs: List[Any]) -> List[Any]:
         outputs = []
