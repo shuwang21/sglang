@@ -90,7 +90,11 @@ def build_parser() -> argparse.ArgumentParser:
             "--max-configs",
             type=int,
             default=DEFAULT_MAX_CONFIGS,
-            help="Points to sample. 0 searches the whole space.",
+            help=(
+                "Points to propose; ones a feasibility rule rejects are "
+                "recorded but not measured, so fewer may be timed. "
+                "0 searches the whole space."
+            ),
         )
         sub.add_argument(
             "--dry-run",
