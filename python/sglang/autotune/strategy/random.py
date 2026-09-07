@@ -55,8 +55,14 @@ class RandomStrategy(Strategy):
 
     def describe_plan(self) -> str:
         cap = "unbounded" if self.max_points is None else self.max_points
-        size = self.space.cardinality if self.space is not None else None
-        total = "a continuous space" if size is None else f"{size} points"
+        # setup() binds the space; a plan printed before then must not claim the
+        # space is continuous just because it cannot see it yet.
+        if self.space is None:
+            total = "the space"
+        elif self.space.cardinality is None:
+            total = "a continuous space"
+        else:
+            total = f"{self.space.cardinality} points"
         return f"random: up to {cap} draws from {total}, baseline first"
 
     def _cap_reached(self) -> bool:

@@ -108,6 +108,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     print(shape.describe())
     print(f"batch sizes: {args.batch_size}")
+    print(f"space: {task.space.cardinality} tile configs")
+    print(f"trials: {task.estimated_trials()}")
     print(f"search: {task.strategy.describe_plan()}")
     print(f"config file: {shape.config_filename}")
     print(f"output: {args.output_dir}")
