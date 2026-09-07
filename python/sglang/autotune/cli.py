@@ -16,14 +16,6 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import torch
 
-from sglang.autotune.driver.fused_moe_triton import (
-    KERNEL_TIME_US,
-    FusedMoeTritonDriver,
-    MoeShape,
-    moe_bucket,
-    moe_workloads,
-)
-from sglang.autotune.driver.serving import STEADY_OUTPUT_THROUGHPUT, ServingDriver
 from sglang.autotune.executor.local import LocalExecutor
 from sglang.autotune.measure import LoadPlan
 from sglang.autotune.objective import (
@@ -33,8 +25,6 @@ from sglang.autotune.objective import (
 )
 from sglang.autotune.orchestrator import tune
 from sglang.autotune.report import BestConfigReporter, MarkdownReporter
-from sglang.autotune.report_moe import MoeConfigReporter
-from sglang.autotune.space.fused_moe_triton import MoeTileSpace
 from sglang.autotune.space.simple import SimpleSpace
 from sglang.autotune.store import JsonlStore
 from sglang.autotune.strategy.random import RandomStrategy
@@ -191,6 +181,17 @@ def _shared(
 
 
 def build_moe_task(args: argparse.Namespace) -> TuneTask:
+    # Imported per subcommand: a broken kernel stack must not stop a serving
+    # run, and vice versa. They share nothing but the loop.
+    from sglang.autotune.driver.fused_moe_triton import (
+        KERNEL_TIME_US,
+        FusedMoeTritonDriver,
+        MoeShape,
+        moe_bucket,
+        moe_workloads,
+    )
+    from sglang.autotune.space.fused_moe_triton import MoeTileSpace
+
     shape = MoeShape(
         args.model_path,
         tp_size=args.tp_size,
@@ -214,6 +215,8 @@ def build_moe_task(args: argparse.Namespace) -> TuneTask:
 
 
 def build_serve_task(args: argparse.Namespace) -> TuneTask:
+    from sglang.autotune.driver.serving import STEADY_OUTPUT_THROUGHPUT, ServingDriver
+
     driver = ServingDriver(
         args.model_path,
         server_timeout_s=args.server_timeout,
@@ -255,6 +258,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.command == "moe":
+        from sglang.autotune.report_moe import MoeConfigReporter
+
         task = build_moe_task(args)
         reporters = [MarkdownReporter(), MoeConfigReporter()]
         print(task.driver.shape.describe())
