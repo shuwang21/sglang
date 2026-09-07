@@ -54,11 +54,17 @@ _STEADY_METRICS = (
 )
 
 # Server log fragments that name a failure better than "it did not come up".
+# The launcher reports only the exit code, so the cause is in the log above it.
 _FAILURE_MARKERS = (
     ("out of memory", FailureKind.OOM),
     ("address already in use", FailureKind.PORT_IN_USE),
     ("unrecognized arguments", FailureKind.UNSUPPORTED_FLAG),
     ("invalid choice", FailureKind.UNSUPPORTED_FLAG),
+    ("gated repo", FailureKind.MODEL_LOAD),
+    ("must have access", FailureKind.MODEL_LOAD),
+    ("401 client error", FailureKind.MODEL_LOAD),
+    ("does not appear to have a file named", FailureKind.MODEL_LOAD),
+    ("no such file or directory", FailureKind.MODEL_LOAD),
 )
 
 
@@ -159,7 +165,7 @@ class ServingDriver(MeasurementDriver):
             return Measurement(
                 trial=trial,
                 status=self._status_for(exc),
-                failure=_classify(f"{exc}\n{_tail(logs.get('server_log'))}"),
+                failure=_classify(exc, _tail(logs.get("server_log"))),
                 message=f"{type(exc).__name__}: {exc}",
                 artifacts=artifacts,
                 started_at=started,
@@ -296,9 +302,14 @@ def _tail(handle: Any, limit: int = 4000) -> str:
         return ""
 
 
-def _classify(message: str) -> FailureKind:
-    lowered = message.lower()
+def _classify(exc: Exception, log_tail: str) -> FailureKind:
+    """Name the cause, preferring the log to the exception that reports it."""
+    haystack = f"{exc}\n{log_tail}".lower()
     for marker, kind in _FAILURE_MARKERS:
-        if marker in lowered:
+        if marker in haystack:
             return kind
-    return FailureKind.HEALTH_TIMEOUT
+    if isinstance(exc, TimeoutError):
+        return FailureKind.HEALTH_TIMEOUT
+    # The launcher raises a plain Exception once the process is gone, and only
+    # TimeoutError when it is still running and unhealthy.
+    return FailureKind.SERVER_CRASH
