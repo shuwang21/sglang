@@ -7,7 +7,9 @@ no weights, and no GPU. It is test scaffolding, not a tuning target.
 
 from __future__ import annotations
 
+import sys
 import time
+from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence, Tuple
 
 from sglang.autotune.executor.base import PruneCheck, TrialSlot
@@ -23,10 +25,24 @@ from sglang.autotune.types import (
     Workload,
 )
 
-__all__ = ["MockDriver", "MetricFn", "sleep_metrics"]
+__all__ = ["MockDriver", "MetricFn", "sleep_metrics", "spawn_child_metrics"]
 
 #: ``(point, workload) -> metrics``, or ``None`` to fail the trial.
 MetricFn = Callable[[Point, Workload], Optional[Mapping[str, float]]]
+
+
+def spawn_child_metrics(point: Point, workload: Workload) -> Mapping[str, float]:
+    """Leave a long-lived child behind, as a driver launching a server does.
+
+    Exists to check that killing a stuck worker takes its server with it: an
+    orphan holds a port and the GPU against every later trial in that slot.
+    """
+    import subprocess
+
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(300)"])
+    Path(str(point.get("pidfile"))).write_text(str(child.pid), encoding="utf-8")
+    time.sleep(float(point.get("seconds", 0.0)))
+    return {"output_throughput": 1.0}
 
 
 def sleep_metrics(point: Point, workload: Workload) -> Optional[Mapping[str, float]]:

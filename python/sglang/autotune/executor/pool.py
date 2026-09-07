@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import select
+import signal
 import subprocess
 import sys
 import tempfile
@@ -63,8 +64,10 @@ class _Worker:
         slot: TrialSlot,
         driver: MeasurementDriver,
         workloads: Sequence[Workload],
+        grace_s: float = 30.0,
     ) -> None:
         self.slot = slot
+        self.grace_s = grace_s
         self.trial: Optional[Trial] = None
         # Pinning has to be in the child's environment from the start: torch
         # reads CUDA_VISIBLE_DEVICES when it first initialises CUDA, and by
@@ -77,6 +80,11 @@ class _Worker:
             stdout=subprocess.PIPE,
             stderr=self._errors,
             env=env,
+            # Its own process group, so a hard kill takes the server the driver
+            # launched with it. A worker blocked inside measure() cannot run
+            # its own teardown, and an orphaned server holds a port and the
+            # GPU against every later trial in this slot.
+            start_new_session=True,
         )
         write_message(
             self.process.stdin,
@@ -128,13 +136,19 @@ class _Worker:
         if self.process.poll() is None:
             self.process.stdin.close()
             try:
-                self.process.wait(timeout=30)
+                self.process.wait(timeout=self.grace_s)
             except subprocess.TimeoutExpired:
-                self.process.kill()
+                self._kill_group()
                 self.process.wait(timeout=10)
         for handle in (self.process.stdin, self.process.stdout, self._errors):
             if handle is not None and not handle.closed:
                 handle.close()
+
+    def _kill_group(self) -> None:
+        try:
+            os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            self.process.kill()
 
 
 @register_executor("pool")
@@ -156,12 +170,16 @@ class PoolExecutor(Executor):
         driver: MeasurementDriver,
         slots: Sequence[TrialSlot],
         workloads: Sequence[Workload] = (),
+        close_grace_s: float = 30.0,
     ) -> None:
         if not slots:
             raise ValueError("a pool needs at least one slot")
         self.driver = driver
         self.slots = list(slots)
         self.workloads = list(workloads)
+        # A server needs time to release its GPU memory on the way out; only a
+        # worker that ignores that gets the group kill.
+        self.close_grace_s = close_grace_s
         self._workers: Dict[int, _Worker] = {}
         self._queue: List[Submission] = []
         self._abandoned: List[Trial] = []
@@ -198,7 +216,9 @@ class PoolExecutor(Executor):
                 return
             worker = self._workers.get(slot.index)
             if worker is None:
-                worker = _Worker(slot, self.driver, self.workloads)
+                worker = _Worker(
+                    slot, self.driver, self.workloads, grace_s=self.close_grace_s
+                )
                 self._workers[slot.index] = worker
                 logger.info(
                     "slot %d on GPU %s", slot.index, slot.visible_devices or "-"

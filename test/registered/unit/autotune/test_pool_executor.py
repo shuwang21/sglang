@@ -8,14 +8,19 @@ would depend on the machine.
 
 from sglang.test.ci.ci_register import register_cpu_ci
 
-register_cpu_ci(est_time=30, suite="base-a-test-cpu")
+register_cpu_ci(est_time=20, suite="base-a-test-cpu")
 
+import os
 import tempfile
 import time
 import unittest
 from pathlib import Path
 
-from sglang.autotune.driver.mock import MockDriver, sleep_metrics
+from sglang.autotune.driver.mock import (
+    MockDriver,
+    sleep_metrics,
+    spawn_child_metrics,
+)
 from sglang.autotune.executor.pool import PoolExecutor, build_slots
 from sglang.autotune.measure import LoadPlan
 from sglang.autotune.objective import Direction, ScalarObjective
@@ -33,11 +38,14 @@ def _trial(seconds: float) -> Trial:
     return Trial(point=Point({"seconds": seconds}), workload=WORKLOAD)
 
 
-def _pool(slots: int, driver: MockDriver) -> PoolExecutor:
+def _pool(slots: int, driver: MockDriver, grace_s: float = 1.0) -> PoolExecutor:
+    # A real run gives a server 30s to release its GPU; a test that waits that
+    # long to prove a kill works is a test nobody runs.
     return PoolExecutor(
         driver,
         build_slots(gpu_count=slots, gpus_per_trial=1),
         workloads=[WORKLOAD],
+        close_grace_s=grace_s,
     )
 
 
@@ -184,3 +192,53 @@ class TestPoolUnderTheOrchestrator(unittest.TestCase):
 
         with self.assertRaises(NotImplementedError):
             tune(self._task(strategy=Pruner()))
+
+
+class TestWorkerTeardown(unittest.TestCase):
+    """Killing a stuck worker must take the server it launched with it.
+
+    A worker blocked inside `measure()` cannot run its own teardown, so the
+    close path hard-kills it; without a process group of its own that leaves
+    the server running, holding the slot's port and GPU against every later
+    trial.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    @staticmethod
+    def _alive(pid: int) -> bool:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        return True
+
+    def test_close_reaps_the_workers_own_children(self):
+        pidfile = self.tmp / "child.pid"
+        pool = _pool(1, MockDriver(spawn_child_metrics))
+        pool.submit(
+            Trial(
+                point=Point({"seconds": 60.0, "pidfile": str(pidfile)}),
+                workload=WORKLOAD,
+            )
+        )
+        for _ in range(100):  # wait for the child to record its pid
+            if pidfile.exists():
+                break
+            time.sleep(0.05)
+        child_pid = int(pidfile.read_text())
+        self.assertTrue(self._alive(child_pid))
+
+        pool.cancel_all()
+        pool.close()
+
+        for _ in range(40):
+            if not self._alive(child_pid):
+                break
+            time.sleep(0.05)
+        self.assertFalse(self._alive(child_pid), "server outlived its worker")
