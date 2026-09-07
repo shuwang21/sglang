@@ -6,7 +6,11 @@ register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
 import unittest
 
-from sglang.autotune.driver.serving import _classify, render_server_flags
+from sglang.autotune.driver.serving import (
+    _classify,
+    _reason,
+    render_server_flags,
+)
 from sglang.autotune.types import FailureKind, Point
 from sglang.test.test_utils import CustomTestCase
 
@@ -59,6 +63,23 @@ class TestClassifyFailure(CustomTestCase):
             _classify(_EXITED, "error: unrecognized arguments: --nope"),
             FailureKind.UNSUPPORTED_FLAG,
         )
+
+    def test_the_message_names_the_cause_not_the_exit_code(self):
+        """Every launch failure read "exited with code 1", whatever it was.
+
+        The launcher cannot say more; the server already did, on its way out.
+        Without lifting that line the progress log and the failure table are
+        the same sentence for a version clash, a bad flag, and an OOM.
+        """
+        log = (
+            '  File "common.py", line 2131, in assert_pkg_version\n'
+            "    raise Exception(\n"
+            "Exception: flashinfer_python is installed with version 0.6.15.post1,"
+            " which is less than the minimum required version 0.6.17.\n"
+            "kill_process_tree called: parent_pid=13311\n"
+        )
+        self.assertIn("flashinfer_python", _reason(_EXITED, log))
+        self.assertEqual(_reason(_EXITED, "no traceback here"), str(_EXITED))
 
     def test_an_exit_is_a_crash_and_only_a_timeout_is_a_timeout(self):
         self.assertEqual(

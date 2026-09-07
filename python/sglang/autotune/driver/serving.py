@@ -68,6 +68,20 @@ _FAILURE_MARKERS = (
 )
 
 
+# How a Python process announces why it died, last one wins.
+_REASON_PREFIXES = (
+    "Exception:",
+    "RuntimeError:",
+    "ValueError:",
+    "AssertionError:",
+    "OSError:",
+    "ImportError:",
+    "ModuleNotFoundError:",
+    "torch.OutOfMemoryError:",
+    "error:",
+)
+
+
 def render_server_flags(point: Point) -> List[str]:
     """Point values as launch_server flags.
 
@@ -163,11 +177,12 @@ class ServingDriver(MeasurementDriver):
                 concurrency_ratio=self.steady_state_ratio,
             )
         except Exception as exc:  # noqa: BLE001 - a config that will not serve is data
+            tail = _tail(logs.get("server_log"))
             return Measurement(
                 trial=trial,
                 status=self._status_for(exc),
-                failure=_classify(exc, _tail(logs.get("server_log"))),
-                message=f"{type(exc).__name__}: {exc}",
+                failure=_classify(exc, tail),
+                message=_reason(exc, tail),
                 artifacts=artifacts,
                 started_at=started,
                 duration_s=time.time() - started,
@@ -301,6 +316,19 @@ def _tail(handle: Any, limit: int = 4000) -> str:
         return Path(handle.name).read_text(encoding="utf-8", errors="replace")[-limit:]
     except OSError:
         return ""
+
+
+def _reason(exc: Exception, log_tail: str) -> str:
+    """The line worth reading, which is rarely the exception.
+
+    The launcher reports "exited with code 1" whatever went wrong; the server
+    said why on its way out, one screen above.
+    """
+    for line in reversed(log_tail.splitlines()):
+        stripped = line.strip()
+        if any(stripped.startswith(p) for p in _REASON_PREFIXES):
+            return stripped[:400]
+    return f"{type(exc).__name__}: {exc}"
 
 
 def _classify(exc: Exception, log_tail: str) -> FailureKind:
