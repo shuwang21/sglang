@@ -137,6 +137,9 @@ class ServingDriver(MeasurementDriver):
         base_url = f"http://{slot.host}:{slot.port}"
         launch_timeout = min(self.server_timeout_s, timeout_s or self.server_timeout_s)
         process = None
+        logs = self._open_logs(trial)
+        artifacts = {name: str(handle.name) for name, handle in logs.items()}
+        logger.info("launching %s -> %s", trial.point, artifacts.get("server_log", "-"))
         try:
             process = popen_launch_server(
                 self.model_path,
@@ -144,6 +147,9 @@ class ServingDriver(MeasurementDriver):
                 timeout=launch_timeout,
                 other_args=render_server_flags(trial.point) + self.extra_server_args,
                 env=slot.env() or None,
+                return_stdout_stderr=(
+                    (logs["server_log"], logs["server_err"]) if logs else None
+                ),
             )
             full, steady = run_steady_state_benchmark(
                 args=self._bench_args(trial, slot),
@@ -153,22 +159,46 @@ class ServingDriver(MeasurementDriver):
             return Measurement(
                 trial=trial,
                 status=self._status_for(exc),
-                failure=_classify(str(exc)),
+                failure=_classify(f"{exc}\n{_tail(logs.get('server_log'))}"),
                 message=f"{type(exc).__name__}: {exc}",
+                artifacts=artifacts,
                 started_at=started,
                 duration_s=time.time() - started,
             )
         finally:
             if process is not None and process.poll() is None:
                 kill_process_tree(process.pid)
+            for handle in logs.values():
+                handle.close()
 
         return Measurement(
             trial=trial,
             status=TrialStatus.OK,
             metrics=self._collect(full, steady, trial.workload),
+            artifacts=artifacts,
             started_at=started,
             duration_s=time.time() - started,
         )
+
+    def _open_logs(self, trial: Trial) -> Dict[str, Any]:
+        """Per-trial server log files, tee'd to the terminal by the launcher.
+
+        A failed candidate is only actionable with the server's own output, and
+        with several trials in one terminal the interleaved copy is not enough
+        to read afterwards.
+        """
+        if self.log_dir is None:
+            return {}
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        stem = trial.point.fingerprint
+        return {
+            "server_log": (self.log_dir / f"{stem}.server.log").open(
+                "w", encoding="utf-8"
+            ),
+            "server_err": (self.log_dir / f"{stem}.server.err").open(
+                "w", encoding="utf-8"
+            ),
+        }
 
     def _bench_args(self, trial: Trial, slot: TrialSlot):
         # Imported here so the module stays importable without the
@@ -253,6 +283,17 @@ class ServingDriver(MeasurementDriver):
 
     def render_config(self, point: Point) -> Mapping[str, Any]:
         return {"model_path": self.model_path, **dict(point.values)}
+
+
+def _tail(handle: Any, limit: int = 4000) -> str:
+    """Last of a server log, for classifying a failure the exception cannot name."""
+    if handle is None:
+        return ""
+    try:
+        handle.flush()
+        return Path(handle.name).read_text(encoding="utf-8", errors="replace")[-limit:]
+    except OSError:
+        return ""
 
 
 def _classify(message: str) -> FailureKind:
