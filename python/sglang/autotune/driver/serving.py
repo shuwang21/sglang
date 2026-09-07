@@ -9,6 +9,7 @@ field at its real default, so this driver cannot drift as flags are added.
 from __future__ import annotations
 
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -28,7 +29,12 @@ from sglang.autotune.types import (
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["ServingDriver", "STEADY_OUTPUT_THROUGHPUT", "render_server_flags"]
+__all__ = [
+    "ServingDriver",
+    "STEADY_OUTPUT_THROUGHPUT",
+    "render_server_flags",
+    "launch_env",
+]
 
 #: Default objective: throughput over the window that excludes ramp-up.
 STEADY_OUTPUT_THROUGHPUT = "steady_output_throughput"
@@ -80,6 +86,16 @@ _REASON_PREFIXES = (
     "torch.OutOfMemoryError:",
     "error:",
 )
+
+
+def launch_env(slot: TrialSlot) -> Dict[str, str]:
+    """The server's environment: this process's, plus the slot's pinning.
+
+    TrialSlot.env() is an overlay of what the slot changes, not a whole
+    environment. Passing it alone starts the server without PATH, HOME or the
+    Hugging Face cache and token, and the model then fails to resolve.
+    """
+    return {**os.environ, **slot.env()}
 
 
 def render_server_flags(point: Point) -> List[str]:
@@ -179,7 +195,7 @@ class ServingDriver(MeasurementDriver):
                 base_url,
                 timeout=launch_timeout,
                 other_args=self._server_args(trial.point),
-                env=slot.env() or None,
+                env=launch_env(slot),
                 return_stdout_stderr=(
                     (logs["server_log"], logs["server_err"]) if logs else None
                 ),

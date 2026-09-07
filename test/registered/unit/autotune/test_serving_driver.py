@@ -4,14 +4,17 @@ from sglang.test.ci.ci_register import register_cpu_ci
 
 register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
+import os
 import unittest
 
 from sglang.autotune.driver.serving import (
     ServingDriver,
     _classify,
     _reason,
+    launch_env,
     render_server_flags,
 )
+from sglang.autotune.executor.base import TrialSlot
 from sglang.autotune.types import FailureKind, Point
 from sglang.test.test_utils import CustomTestCase
 
@@ -112,3 +115,15 @@ class TestServerArgs(CustomTestCase):
         rendered = driver.render_launch_command(point)
         for flag in driver._server_args(point):
             self.assertIn(flag, rendered)
+
+
+class TestLaunchEnv(CustomTestCase):
+    def test_a_pinned_slot_still_gets_the_whole_environment(self):
+        """A slot's env is an overlay; passing it alone strips PATH and the
+        Hugging Face cache, and the server cannot resolve the model."""
+        env = launch_env(TrialSlot(index=1, gpu_ids=(2, 3)))
+        self.assertEqual(env["CUDA_VISIBLE_DEVICES"], "2,3")
+        self.assertIn("PATH", env)
+
+    def test_an_unpinned_slot_changes_nothing(self):
+        self.assertEqual(launch_env(TrialSlot(index=0)), dict(os.environ))
