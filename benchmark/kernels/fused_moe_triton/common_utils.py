@@ -8,6 +8,7 @@ derivation is needed by ``sglang.autotune`` as well as by these scripts.
 
 from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_tuning import (
     BenchmarkConfig,
+    benchmark_config,
     calculate_shard_intermediate_size,
     get_config_filename,
     get_configs_compute_bound,
@@ -20,6 +21,7 @@ from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_tuning impor
 
 __all__ = [
     "BenchmarkConfig",
+    "benchmark_config",
     "calculate_shard_intermediate_size",
     "get_config_filename",
     "get_configs_compute_bound",
