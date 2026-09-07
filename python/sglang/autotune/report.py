@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List
 
-from sglang.autotune.objective import Evaluation
+from sglang.autotune.objective import Evaluation, margin
 from sglang.autotune.registry import register_reporter
 from sglang.autotune.task import TuneResult
 
@@ -44,6 +44,16 @@ class Reporter(ABC):
         because it was stopped at hour 11 of 12 is a bad trade.
         """
         return self.emit(result, output_dir)
+
+
+def _margin_line(ranked: List[Evaluation]) -> List[str]:
+    """State the lead, and whether the run could tell it from noise."""
+    lead = margin(ranked)
+    if lead is None:
+        return []
+    repeated = ranked[0].measurement.trial.fidelity.repeats > 1
+    caveat = "" if repeated else " Each point was measured once."
+    return [f"Ahead of the runner-up by {lead * 100:.2f}%.{caveat}"]
 
 
 @register_reporter("best_config")
@@ -118,6 +128,7 @@ class MarkdownReporter(Reporter):
             return [title, "", "No feasible candidate.", ""]
 
         out = [title, "", *self._diff_table(result, best), ""]
+        out += [*_margin_line(ranked), ""]
         metrics = sorted({m for e in ranked for m in e.measurement.metrics})
         out += ["| # | " + " | ".join(["point", *metrics]) + " |"]
         out += ["|---" * (len(metrics) + 2) + "|"]

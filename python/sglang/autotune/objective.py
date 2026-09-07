@@ -30,6 +30,7 @@ __all__ = [
     "evaluate_point",
     "rank",
     "rank_by_bucket",
+    "margin",
     "pareto_front",
 ]
 
@@ -289,6 +290,22 @@ def rank_by_bucket(
     for evaluation in ranked:
         out.setdefault(evaluation.measurement.trial.bucket, []).append(evaluation)
     return out
+
+
+def margin(ranked: Sequence[Evaluation]) -> Optional[float]:
+    """How far the winner leads the runner-up, as a fraction of the runner-up.
+
+    A single-shot run reports its best with no sense of scale: a 30% lead and a
+    0.3% one read identically. Components are already sign-normalised so higher
+    is better, which makes this work for a minimised metric too.
+    """
+    top = [e for e in ranked if e.rankable and e.components]
+    if len(top) < 2:
+        return None
+    best, second = top[0].components[0], top[1].components[0]
+    if second == 0:
+        return None
+    return (best - second) / abs(second)
 
 
 def pareto_front(evaluations: Sequence[Evaluation]) -> List[Evaluation]:

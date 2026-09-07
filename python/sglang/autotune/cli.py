@@ -22,12 +22,14 @@ from sglang.autotune.objective import (
     Direction,
     MetricThreshold,
     ScalarObjective,
+    margin,
 )
 from sglang.autotune.orchestrator import tune
 from sglang.autotune.report import BestConfigReporter, MarkdownReporter
 from sglang.autotune.space.simple import SimpleSpace
 from sglang.autotune.store import JsonlStore
-from sglang.autotune.strategy.random import RandomStrategy
+from sglang.autotune.registry import STRATEGIES
+from sglang.autotune.strategy import grid, random  # noqa: F401  register both
 from sglang.autotune.task import HardwareSpec, ModelSpec, TuneTask
 from sglang.autotune.executor.base import TrialSlot
 from sglang.autotune.types import Budget, LoadPoint, Trial, Workload
@@ -86,6 +88,12 @@ def build_parser() -> argparse.ArgumentParser:
                 "recorded but not measured, so fewer may be timed. "
                 "0 searches the whole space."
             ),
+        )
+        sub.add_argument(
+            "--strategy",
+            choices=("random", "grid"),
+            default="random",
+            help="`grid` covers the space in order; `random` samples it.",
         )
         sub.add_argument(
             "--dry-run",
@@ -180,6 +188,15 @@ def _shared(
     )
 
 
+def _strategy(args: argparse.Namespace):
+    """`grid` ignores --max-configs: covering the space is the whole point."""
+    if args.strategy == "grid":
+        return STRATEGIES.create("grid", seed=args.seed)
+    return STRATEGIES.create(
+        "random", seed=args.seed, max_points=args.max_configs or None
+    )
+
+
 def build_moe_task(args: argparse.Namespace) -> TuneTask:
     # Imported per subcommand: a broken kernel stack must not stop a serving
     # run, and vice versa. They share nothing but the loop.
@@ -205,7 +222,7 @@ def build_moe_task(args: argparse.Namespace) -> TuneTask:
         args,
         name=f"fused-moe-{Path(args.model_path).name}-tp{args.tp_size}",
         space=MoeTileSpace(block_shape=shape.block_shape),
-        strategy=RandomStrategy(seed=args.seed, max_points=args.max_configs or None),
+        strategy=_strategy(args),
         driver=driver,
         objective=ScalarObjective(metric=KERNEL_TIME_US, direction=Direction.MINIMIZE),
         workloads=moe_workloads(args.batch_size),
@@ -241,7 +258,7 @@ def build_serve_task(args: argparse.Namespace) -> TuneTask:
         args,
         name=f"serve-{Path(args.model_path).name}",
         space=SimpleSpace(dict(args.knob), group="server_args"),
-        strategy=RandomStrategy(seed=args.seed, max_points=args.max_configs or None),
+        strategy=_strategy(args),
         driver=driver,
         objective=ScalarObjective(
             metric=STEADY_OUTPUT_THROUGHPUT, direction=Direction.MAXIMIZE

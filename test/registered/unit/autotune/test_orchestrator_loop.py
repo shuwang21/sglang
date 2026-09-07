@@ -28,11 +28,17 @@ from sglang.autotune import (
 )
 from sglang.autotune.driver import MockDriver
 from sglang.autotune.executor.local import LocalExecutor
-from sglang.autotune.objective import Direction, MetricThreshold, ScalarObjective
+from sglang.autotune.objective import (
+    Direction,
+    MetricThreshold,
+    ScalarObjective,
+    margin,
+)
 from sglang.autotune.report import MarkdownReporter
 from sglang.autotune.space.base import FeasibilityRule
 from sglang.autotune.space.simple import SimpleSpace
 from sglang.autotune.store import JsonlStore
+from sglang.autotune.strategy.grid import GridStrategy
 from sglang.autotune.strategy.random import RandomStrategy
 from sglang.test.test_utils import CustomTestCase
 
@@ -68,6 +74,7 @@ def _build_task(
     load_plan=None,
     trial_seconds=1.0,
     provenance_model="mock-model",
+    strategy=None,
 ) -> TuneTask:
     driver = MockDriver(metric_fn, trial_seconds=trial_seconds, model=provenance_model)
     kwargs = {}
@@ -80,7 +87,7 @@ def _build_task(
         workloads=workloads or [Workload(name="chat", kind="random")],
         load_plan=load_plan or LoadPlan(),
         space=SimpleSpace(KNOBS, rules=rules),
-        strategy=RandomStrategy(seed=0, max_points=max_points),
+        strategy=strategy or RandomStrategy(seed=0, max_points=max_points),
         driver=driver,
         executor=LocalExecutor(driver),
         objective=ScalarObjective(
@@ -289,3 +296,65 @@ class TestOrchestratorLoop(CustomTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestGridStrategy(CustomTestCase):
+    """Exhaustive search, and the margin a single-shot run cannot judge."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_covers_every_feasible_point_exactly_once(self):
+        task = _build_task(self.tmp, strategy=GridStrategy(), rules=[_RejectTp2()])
+        result = tune(task)
+
+        # 3 tp_size x 2 backends, less the two the rule rejects.
+        measured = [t.point.fingerprint for t in task.driver.measured]
+        self.assertEqual(len(measured), 4)
+        self.assertEqual(len(set(measured)), 4)
+        self.assertTrue(task.strategy.is_exhausted())
+        self.assertEqual(result.best_point.get("tp_size"), 4)
+
+    def test_a_resumed_grid_runs_only_what_is_left(self):
+        first = _build_task(
+            self.tmp, strategy=GridStrategy(), budget=Budget(max_trials=2)
+        )
+        tune(first)
+        first.store.close()
+
+        second = _build_task(self.tmp, strategy=GridStrategy())
+        tune(second)
+
+        self.assertEqual(len(second.driver.measured), 4)
+        self.assertEqual(len(second.store.history()), 6)
+
+    def test_margin_reports_the_lead_over_the_runner_up(self):
+        """A 30% lead and a 0.3% one read identically without this.
+
+        Ranking states a winner with no sense of scale, so a run whose top two
+        differ by noise looks exactly like one with a real answer.
+        """
+        result = tune(_build_task(self.tmp, strategy=GridStrategy()))
+        ranked = result.ranking_by_bucket[""]
+
+        # fa3 at tp=4 scores 420, triton at tp=4 scores 400: a 5% lead.
+        self.assertAlmostEqual(margin(ranked), 0.05, places=6)
+        self.assertIsNone(margin(ranked[:1]))
+
+    def test_margin_handles_a_minimised_metric(self):
+        task = _build_task(self.tmp, strategy=GridStrategy())
+        # Minimise the same metric, so the winner is the worst throughput: the
+        # sign lives in the objective's components, not in margin.
+        task.objective = ScalarObjective(
+            metric="output_throughput", direction=Direction.MINIMIZE
+        )
+        result = tune(task)
+        ranked = result.ranking_by_bucket[""]
+
+        self.assertEqual(ranked[0].measurement.metric("output_throughput"), 100.0)
+        # 100 beats 120 by a fifth of 120, whichever way the metric points.
+        self.assertAlmostEqual(margin(ranked), 20.0 / 120.0, places=6)
