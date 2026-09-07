@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
+import torch
+
 from sglang.autotune.driver.fused_moe_triton import (
     KERNEL_TIME_US,
     FusedMoeTritonDriver,
@@ -111,6 +113,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"output: {args.output_dir}")
     if args.dry_run:
         return 0
+
+    if not torch.cuda.is_available():
+        print(
+            "error: tuning needs a visible GPU (--dry-run works without one)",
+            file=sys.stderr,
+        )
+        return 1
 
     errors = task.validate()
     if errors:

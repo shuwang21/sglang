@@ -25,7 +25,7 @@ from sglang.autotune.types import (
     Workload,
 )
 from sglang.srt.server_args import ServerArgs, set_global_server_args_for_scheduler
-from sglang.srt.utils import get_device
+from sglang.srt.utils import get_device, get_device_name
 from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_tuning import (
     benchmark_config,
     get_config_filename,
@@ -93,6 +93,14 @@ class MoeShape:
 
     @property
     def config_filename(self) -> str:
+        """The name the runtime will look for, GPU or not.
+
+        ``get_device_name()`` returns None off-GPU, which the filename builder
+        cannot format; a dry run still has to be able to print the name, so
+        stand in a placeholder rather than fail.
+        """
+        if get_device_name() is None:
+            return "<device_name unknown off-GPU>"
         return get_config_filename(
             self.num_experts,
             self.shard_intermediate_size,
