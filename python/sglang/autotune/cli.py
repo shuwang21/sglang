@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import torch
 
 from sglang.autotune.executor.local import LocalExecutor
+from sglang.autotune.executor.pool import PoolExecutor, build_slots
 from sglang.autotune.measure import LoadPlan
 from sglang.autotune.objective import (
     Direction,
@@ -89,6 +90,20 @@ def build_parser() -> argparse.ArgumentParser:
                 "0 searches the whole space."
             ),
         )
+        sub.add_argument("--host", default="127.0.0.1")
+        sub.add_argument("--port", type=int, default=31000)
+        sub.add_argument(
+            "--gpu-count",
+            type=int,
+            default=1,
+            help="GPUs the run may use; with --gpus-per-trial it sets concurrency.",
+        )
+        sub.add_argument(
+            "--gpus-per-trial",
+            type=int,
+            default=1,
+            help="GPUs one candidate needs, e.g. its tp size.",
+        )
         sub.add_argument(
             "--strategy",
             choices=("random", "grid"),
@@ -130,8 +145,6 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="NAME=V1,V2",
         help="A ServerArgs field and its candidate values. Repeatable.",
     )
-    serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=31000)
     serve.add_argument("--dataset-name", default="random")
     serve.add_argument("--num-prompts", type=int, default=200)
     serve.add_argument("--random-input-len", type=int, default=1024)
@@ -168,16 +181,20 @@ def _shared(
     slot=None,
 ) -> TuneTask:
     kwargs: Dict[str, Any] = {} if bucket_of is None else {"bucket_of": bucket_of}
+    hardware = HardwareSpec(
+        gpu_count=args.gpu_count, gpus_per_trial=args.gpus_per_trial
+    )
+    executor = _executor(args, driver, hardware, workloads, slot)
     return TuneTask(
         name=name,
         model=ModelSpec(path=args.model_path),
-        hardware=HardwareSpec(gpu_count=1, gpus_per_trial=1),
+        hardware=hardware,
         workloads=workloads,
         load_plan=load_plan,
         space=space,
         strategy=strategy,
         driver=driver,
-        executor=LocalExecutor(driver, slot=slot),
+        executor=executor,
         objective=objective,
         constraints=constraints,
         store=JsonlStore(args.output_dir / "trials.jsonl"),
@@ -186,6 +203,19 @@ def _shared(
         seed=args.seed,
         **kwargs,
     )
+
+
+def _executor(args, driver, hardware, workloads, slot):
+    """A pool only when a candidate leaves room for another beside it."""
+    if hardware.concurrent_trials <= 1:
+        return LocalExecutor(driver, slot=slot)
+    slots = build_slots(
+        args.gpu_count,
+        args.gpus_per_trial,
+        host=args.host,
+        base_port=args.port,
+    )
+    return PoolExecutor(driver, slots, workloads=workloads)
 
 
 def _strategy(args: argparse.Namespace):

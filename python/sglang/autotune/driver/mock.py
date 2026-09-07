@@ -23,10 +23,24 @@ from sglang.autotune.types import (
     Workload,
 )
 
-__all__ = ["MockDriver", "MetricFn"]
+__all__ = ["MockDriver", "MetricFn", "sleep_metrics"]
 
 #: ``(point, workload) -> metrics``, or ``None`` to fail the trial.
 MetricFn = Callable[[Point, Workload], Optional[Mapping[str, float]]]
+
+
+def sleep_metrics(point: Point, workload: Workload) -> Optional[Mapping[str, float]]:
+    """Cost the wall clock the point's ``seconds`` knob asks for.
+
+    Defined here rather than in a test because pickle carries a function by
+    module and name: a pool worker is a separate process, and a closure written
+    beside the test it serves is not importable there.
+    """
+    if point.get("fail"):
+        return None
+    seconds = float(point.get("seconds", 0.0))
+    time.sleep(seconds)
+    return {"output_throughput": 1.0 / seconds if seconds else float("inf")}
 
 
 @register_driver("mock")
