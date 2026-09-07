@@ -21,3 +21,7 @@ __all__ = [
     "Knob",
     "Space",
 ]
+
+# Imported last, for the register_space side effect: it depends on the
+# names above.
+from sglang.autotune.space import simple  # noqa: E402,F401

@@ -105,6 +105,9 @@ class Strategy(ABC):
         self.constraints = tuple(constraints)
         self.budget = budget
         for measurement in history:
+            # Mirrors Orchestrator._observe, which also records into the state
+            # before telling; without it a resumed run re-proposes every point.
+            self.state.observe(measurement, self.objective, self.constraints)
             self.tell(measurement)
 
     # ---- the contract ----------------------------------------------------

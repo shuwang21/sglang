@@ -308,16 +308,22 @@ class Measurement:
         return self.metrics.get(name, default)
 
     def to_json(self) -> Dict[str, Any]:
+        """Round-trips through :meth:`from_json` with an unchanged trial key.
+
+        The flat fields are what a CSV column or a human reads; ``trial`` holds
+        the rest of the identity, which only the key and a resumed run need.
+        """
+        trial = self.trial
         return {
             "key": self.key,
             "status": self.status.value,
-            "point": dict(self.trial.point.values),
-            "workload": self.trial.workload.name,
-            "request_rate": self.trial.load.request_rate,
-            "max_concurrency": self.trial.load.max_concurrency,
-            "fidelity": self.trial.fidelity.level,
-            "tag": self.trial.tag,
-            "bucket": self.trial.bucket,
+            "point": dict(trial.point.values),
+            "workload": trial.workload.name,
+            "request_rate": trial.load.request_rate,
+            "max_concurrency": trial.load.max_concurrency,
+            "fidelity": trial.fidelity.level,
+            "tag": trial.tag,
+            "bucket": trial.bucket,
             "metrics": dict(self.metrics),
             "failure": self.failure.value if self.failure else None,
             "message": self.message,
@@ -326,7 +332,58 @@ class Measurement:
             "started_at": self.started_at,
             "duration_s": self.duration_s,
             "extra": dict(self.extra),
+            "trial": {
+                "workload_kind": trial.workload.kind,
+                "workload_params": dict(trial.workload.params),
+                "workload_prepared_path": trial.workload.prepared_path,
+                "fidelity_scale": trial.fidelity.scale,
+                "fidelity_repeats": trial.fidelity.repeats,
+                "fidelity_label": trial.fidelity.label,
+                "provenance": trial.provenance_fingerprint,
+                "attempt": trial.attempt,
+            },
+            "discovered": [m.to_json() for m in self.discovered],
         }
+
+    @classmethod
+    def from_json(cls, payload: Mapping[str, Any]) -> "Measurement":
+        nested = payload["trial"]
+        failure = payload["failure"]
+        return cls(
+            trial=Trial(
+                point=Point(payload["point"]),
+                workload=Workload(
+                    name=payload["workload"],
+                    kind=nested["workload_kind"],
+                    params=nested["workload_params"],
+                    prepared_path=nested["workload_prepared_path"],
+                ),
+                load=LoadPoint(
+                    request_rate=payload["request_rate"],
+                    max_concurrency=payload["max_concurrency"],
+                ),
+                fidelity=Fidelity(
+                    level=payload["fidelity"],
+                    scale=nested["fidelity_scale"],
+                    repeats=nested["fidelity_repeats"],
+                    label=nested["fidelity_label"],
+                ),
+                provenance_fingerprint=nested["provenance"],
+                attempt=nested["attempt"],
+                tag=payload["tag"],
+                bucket=payload["bucket"],
+            ),
+            status=TrialStatus(payload["status"]),
+            metrics=dict(payload["metrics"]),
+            failure=FailureKind(failure) if failure else None,
+            message=payload["message"],
+            hint=payload["hint"],
+            artifacts=dict(payload["artifacts"]),
+            started_at=payload["started_at"],
+            duration_s=payload["duration_s"],
+            extra=dict(payload["extra"]),
+            discovered=tuple(cls.from_json(m) for m in payload["discovered"]),
+        )
 
 
 class BudgetExhausted(RuntimeError):

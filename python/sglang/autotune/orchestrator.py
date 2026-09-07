@@ -88,7 +88,11 @@ class Orchestrator:
             task.executor.close()
             task.driver.teardown()
 
-        return self._finalize(started_at)
+        result = self._finalize(started_at)
+        # After _finalize, which reads history back out of the store.
+        if task.store is not None:
+            task.store.close()
+        return result
 
     # ---- the loop --------------------------------------------------------
 

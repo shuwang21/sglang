@@ -10,7 +10,9 @@ knob family, an execution backend, or an objective without touching the loop.
     result = tune(task)
 """
 
+from sglang.autotune.driver import MockDriver
 from sglang.autotune.executor.base import Executor, SerialExecutor, TrialSlot
+from sglang.autotune.executor.local import LocalExecutor
 from sglang.autotune.measure import CapacitySearch, LoadPlan, MeasurementDriver
 from sglang.autotune.objective import (
     Constraint,
@@ -80,8 +82,10 @@ __all__ = [
     "Strategy",
     "Executor",
     "SerialExecutor",
+    "LocalExecutor",
     "TrialSlot",
     "MeasurementDriver",
+    "MockDriver",
     "LoadPlan",
     "CapacitySearch",
     "Objective",
