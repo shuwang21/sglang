@@ -10,7 +10,7 @@ import subprocess
 import sys
 from typing import Dict, Iterator, List, Optional, Sequence
 
-from sglang.autotune.executor.base import Executor, PruneCheck, Submission, TrialSlot
+from sglang.autotune.executor.base import Executor, Submission, TrialSlot
 from sglang.autotune.executor.worker import (
     REPLY_FD_ENV,
     read_message,
@@ -171,10 +171,6 @@ class PoolExecutor(Executor):
     than the host has: eight one-GPU kernel trials on eight GPUs. It is not a
     win for a candidate that already spans every GPU -- there
     ``concurrent_trials`` is one and the serial executor is simpler.
-
-    Pruning is not supported. The predicate is a callable, which cannot cross
-    a process boundary, and no strategy implements one; passing it is an error
-    rather than a silent no-op.
     """
 
     def __init__(
@@ -211,12 +207,7 @@ class PoolExecutor(Executor):
         trial: Trial,
         *,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> None:
-        if prune_check is not None:
-            raise NotImplementedError(
-                "pool executor cannot forward a prune predicate to a subprocess"
-            )
         self._queue.append(Submission(trial=trial, timeout_s=timeout_s))
         self._dispatch()
 

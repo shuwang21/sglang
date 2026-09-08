@@ -125,11 +125,6 @@ class TestPoolExecutor(unittest.TestCase):
         self.assertIs(statuses[False], TrialStatus.OK)
         self.assertIs(statuses[True], TrialStatus.FAILED)
 
-    def test_pruning_is_refused_rather_than_ignored(self):
-        with _pool(1, MockDriver(sleep_metrics)) as pool:
-            with self.assertRaises(NotImplementedError):
-                pool.submit(_trial(0.1), prune_check=lambda trial, metrics: "no")
-
 
 class TestBuildSlots(unittest.TestCase):
     def test_partitions_gpus_and_spaces_ports(self):
@@ -143,16 +138,12 @@ class TestBuildSlots(unittest.TestCase):
         self.assertEqual(len(build_slots(gpu_count=4, gpus_per_trial=4)), 1)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestPoolUnderTheOrchestrator(unittest.TestCase):
     """The pool driven by the loop, not by direct submits.
 
-    Every earlier case called `submit` itself and so never carried what the
-    orchestrator actually sends. It sends a prune predicate unconditionally,
-    which the pool refuses, and a whole run died on the first trial.
+    Every earlier case calls `submit` itself, so none of them carries what the
+    orchestrator actually sends. A mismatch there took out a whole run on its
+    first trial while every direct-submit case stayed green.
     """
 
     def setUp(self):
@@ -188,16 +179,6 @@ class TestPoolUnderTheOrchestrator(unittest.TestCase):
         self.assertTrue(all(m.status is TrialStatus.OK for m in result.measurements))
         # Fastest point wins: throughput is 1/seconds.
         self.assertAlmostEqual(result.best_point.get("seconds"), 0.1)
-
-    def test_a_pruning_strategy_is_still_refused(self):
-        class Pruner(GridStrategy):
-            prunes = True
-
-            def should_prune(self, point, partial_metrics):
-                return "no"
-
-        with self.assertRaises(NotImplementedError):
-            tune(self._task(strategy=Pruner()))
 
 
 class TestWorkerTeardown(unittest.TestCase):
@@ -248,3 +229,7 @@ class TestWorkerTeardown(unittest.TestCase):
                 break
             time.sleep(0.05)
         self.assertFalse(self._alive(child_pid), "server outlived its worker")
+
+
+if __name__ == "__main__":
+    unittest.main()

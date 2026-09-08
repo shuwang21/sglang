@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from sglang.autotune.executor.base import PruneCheck, TrialSlot
+from sglang.autotune.executor.base import TrialSlot
 from sglang.autotune.measure import MeasurementDriver
 from sglang.autotune.registry import register_driver
 from sglang.autotune.types import (
@@ -183,7 +183,6 @@ class ServingDriver(MeasurementDriver):
         trial: Trial,
         slot: TrialSlot,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> Measurement:
         from sglang.benchmark.steady_state_serving import (
             run_steady_state_benchmark,

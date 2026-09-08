@@ -15,7 +15,7 @@ from __future__ import annotations
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Iterable, Iterator, List, Optional, Tuple
+from typing import Iterable, Iterator, List, Optional, Tuple
 
 from sglang.autotune.types import (
     FailureKind,
@@ -24,10 +24,7 @@ from sglang.autotune.types import (
     TrialStatus,
 )
 
-__all__ = ["TrialSlot", "Executor", "SerialExecutor", "PruneCheck", "Submission"]
-
-#: Called by the driver with partial metrics; returns a reason to abort, or None.
-PruneCheck = Callable[[Trial, dict], Optional[str]]
+__all__ = ["TrialSlot", "Executor", "SerialExecutor", "Submission"]
 
 
 @dataclass(frozen=True)
@@ -35,14 +32,12 @@ class Submission:
     """A trial plus the per-trial limits the orchestrator attaches to it.
 
     ``timeout_s`` is derived from the remaining run budget, so it changes from
-    one submission to the next; ``prune_check`` is the strategy's early-abort
-    predicate. Both travel with the trial so an executor that hands work to a
-    subprocess or another host has nothing to look up.
+    one submission to the next. It travels with the trial so an executor that
+    hands work to a subprocess or another host has nothing to look up.
     """
 
     trial: Trial
     timeout_s: Optional[float] = None
-    prune_check: Optional[PruneCheck] = None
 
 
 @dataclass(frozen=True)
@@ -90,12 +85,11 @@ class Executor(ABC):
         trial: Trial,
         *,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> None:
         """Queue a trial. Must not block on the trial completing.
 
-        ``timeout_s`` and ``prune_check`` are forwarded to the driver's
-        ``measure()``; see :class:`Submission`.
+        ``timeout_s`` is forwarded to the driver's ``measure()``; see
+        :class:`Submission`.
         """
 
     @abstractmethod
@@ -174,11 +168,8 @@ class SerialExecutor(Executor):
         trial: Trial,
         *,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> None:
-        self._queue.append(
-            Submission(trial=trial, timeout_s=timeout_s, prune_check=prune_check)
-        )
+        self._queue.append(Submission(trial=trial, timeout_s=timeout_s))
 
     def cancel_all(self) -> None:
         self._cancelled = True
@@ -202,7 +193,6 @@ class SerialExecutor(Executor):
                     trial,
                     self.slot,
                     timeout_s=submission.timeout_s,
-                    prune_check=submission.prune_check,
                 )
             except Exception as exc:  # noqa: BLE001 - a failed trial is data
                 measurement = Measurement(
@@ -224,6 +214,5 @@ class SerialExecutor(Executor):
         slot: TrialSlot,
         *,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> Measurement:
         """Execute a single trial to completion and return its measurement."""

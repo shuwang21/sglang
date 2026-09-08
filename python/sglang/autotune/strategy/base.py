@@ -13,15 +13,15 @@ decides feasibility. That restriction is what makes strategies cheap to write
 and testable against an analytic objective with no GPU.
 
 One trial costs minutes (weight load + warmup + benchmark), so the interesting
-strategies are the ones that spend a small trial budget well: reduce fidelity,
-prune hopeless runs early, and exploit the structure of the space.
+strategies are the ones that spend a small trial budget well: reduce fidelity
+and exploit the structure of the space.
 """
 
 from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, List, Mapping, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from sglang.autotune.objective import Constraint, Objective, evaluate
 from sglang.autotune.space.base import Space
@@ -75,12 +75,6 @@ class Strategy(ABC):
 
     name: str = "strategy"
 
-    #: Whether :meth:`should_prune` decides anything. The orchestrator only
-    #: forwards the predicate when this is set, so an executor that cannot
-    #: carry a callable across a process boundary stays usable with the
-    #: strategies that never prune -- which is all of them today.
-    prunes: bool = False
-
     def __init__(self, seed: int = 0, **options: object) -> None:
         self.rng = random.Random(seed)
         self.options: Dict[str, object] = dict(options)
@@ -130,7 +124,7 @@ class Strategy(ABC):
 
     @abstractmethod
     def tell(self, measurement: Measurement) -> None:
-        """Incorporate one result. Called for failures and prunes too.
+        """Incorporate one result. Called for failures too.
 
         Failure information is signal, not noise: a candidate that OOMed tells
         a memory-aware strategy to back off ``mem_fraction_static`` rather than
@@ -142,17 +136,6 @@ class Strategy(ABC):
     def fidelity_for(self, point: Point) -> Fidelity:
         """Fidelity at which to evaluate ``point``. Default: full."""
         return FULL_FIDELITY
-
-    def should_prune(
-        self, point: Point, partial_metrics: Mapping[str, float]
-    ) -> Optional[str]:
-        """Abort a running trial early; return a reason, or ``None`` to continue.
-
-        Called by the executor as partial metrics stream in. The default is to
-        never prune, so a strategy opts into this rather than inheriting a
-        surprise.
-        """
-        return None
 
     def is_exhausted(self) -> bool:
         """True when the strategy has nothing left to propose.

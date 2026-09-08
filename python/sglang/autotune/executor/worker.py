@@ -72,9 +72,7 @@ def main() -> int:
         trial = submission["trial"]
         started = time.time()
         try:
-            measurement = driver.measure(
-                trial, slot, timeout_s=submission["timeout_s"], prune_check=None
-            )
+            measurement = driver.measure(trial, slot, timeout_s=submission["timeout_s"])
         except BaseException:  # noqa: BLE001 - the parent cannot see this stack
             measurement = Measurement(
                 trial=trial,

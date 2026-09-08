@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sglang.autotune.executor.base import PruneCheck, SerialExecutor, TrialSlot
+from sglang.autotune.executor.base import SerialExecutor, TrialSlot
 from sglang.autotune.measure import MeasurementDriver
 from sglang.autotune.registry import register_executor
 from sglang.autotune.types import Measurement, Trial
@@ -33,8 +33,5 @@ class LocalExecutor(SerialExecutor):
         slot: TrialSlot,
         *,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> Measurement:
-        return self.driver.measure(
-            trial, slot, timeout_s=timeout_s, prune_check=prune_check
-        )
+        return self.driver.measure(trial, slot, timeout_s=timeout_s)

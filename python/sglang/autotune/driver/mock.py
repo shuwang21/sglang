@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence, Tuple
 
-from sglang.autotune.executor.base import PruneCheck, TrialSlot
+from sglang.autotune.executor.base import TrialSlot
 from sglang.autotune.measure import MeasurementDriver
 from sglang.autotune.registry import register_driver
 from sglang.autotune.types import (
@@ -89,7 +89,6 @@ class MockDriver(MeasurementDriver):
         trial: Trial,
         slot: TrialSlot,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> Measurement:
         started = time.time()
         self.measured.append(trial)
@@ -104,14 +103,7 @@ class MockDriver(MeasurementDriver):
                 message="metric_fn declined this point",
             )
 
-        metrics = dict(metrics)
-        if prune_check is not None:
-            reason = prune_check(trial, metrics)
-            if reason is not None:
-                return self._result(
-                    trial, TrialStatus.PRUNED, started, metrics=metrics, message=reason
-                )
-        return self._result(trial, TrialStatus.OK, started, metrics=metrics)
+        return self._result(trial, TrialStatus.OK, started, metrics=dict(metrics))
 
     def _result(
         self,

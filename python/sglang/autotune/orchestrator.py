@@ -132,11 +132,7 @@ class Orchestrator:
                         self._observe(disposition)
                         continue
                     task.executor.submit(
-                        trial,
-                        timeout_s=task.budget.remaining_seconds(),
-                        prune_check=(
-                            self._prune_check if task.strategy.prunes else None
-                        ),
+                        trial, timeout_s=task.budget.remaining_seconds()
                     )
                     in_flight += 1
 
@@ -154,9 +150,6 @@ class Orchestrator:
                     self._partial_reason = task.budget.exhausted_reason()
                     task.executor.cancel_all()
                     return
-
-    def _prune_check(self, trial: Trial, partial_metrics: dict) -> Optional[str]:
-        return self.task.strategy.should_prune(trial.point, partial_metrics)
 
     def _expand(self, point: Point, workloads: Sequence) -> Iterator[Trial]:
         """One point becomes one trial per workload, load setting, and repeat."""

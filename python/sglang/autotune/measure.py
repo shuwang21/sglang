@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Sequence, Tuple
 
-from sglang.autotune.executor.base import PruneCheck, TrialSlot
+from sglang.autotune.executor.base import TrialSlot
 from sglang.autotune.types import (
     LoadPoint,
     Measurement,
@@ -82,7 +82,6 @@ class MeasurementDriver(ABC):
         trial: Trial,
         slot: TrialSlot,
         timeout_s: Optional[float] = None,
-        prune_check: Optional[PruneCheck] = None,
     ) -> Measurement:
         """Run one trial and return its measurement.
 
@@ -94,8 +93,6 @@ class MeasurementDriver(ABC):
         * always tear down the server, including on timeout and ``KeyboardInterrupt``;
         * honor ``timeout_s``, which the orchestrator derives from the remaining
           budget, not from a per-trial constant;
-        * call ``prune_check`` with partial metrics when it can, and return a
-          ``PRUNED`` measurement if it returns a reason.
         """
 
     def teardown(self) -> None:
