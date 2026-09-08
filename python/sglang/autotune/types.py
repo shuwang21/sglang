@@ -326,12 +326,6 @@ class Measurement:
     started_at: float = field(default_factory=time.time)
     duration_s: float = 0.0
     extra: Dict[str, Any] = field(default_factory=dict)
-    #: Measurements of *other* points that the same run produced, for drivers
-    #: that sweep a candidate set in one call (cutlass profiler, triton
-    #: autotune). Each carries its own Trial; the orchestrator records and
-    #: tells them like any other result. Executor accounting is unaffected:
-    #: one submission still yields exactly one top-level measurement.
-    discovered: Tuple["Measurement", ...] = ()
 
     @property
     def key(self) -> str:
@@ -379,7 +373,6 @@ class Measurement:
                 "provenance": trial.provenance_fingerprint,
                 "attempt": trial.attempt,
             },
-            "discovered": [m.to_json() for m in self.discovered],
         }
 
     @classmethod
@@ -419,7 +412,6 @@ class Measurement:
             started_at=payload["started_at"],
             duration_s=payload["duration_s"],
             extra=dict(payload["extra"]),
-            discovered=tuple(cls.from_json(m) for m in payload["discovered"]),
         )
 
 

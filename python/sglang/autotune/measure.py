@@ -78,9 +78,7 @@ class CapacitySearch:
 class MeasurementDriver(ABC):
     """Evaluates one point and returns its measurement.
 
-    Nothing here assumes a server. A driver that sweeps many candidates in a
-    single call (cutlass profiler, triton autotune) returns the submitted
-    point's measurement and attaches the rest as ``Measurement.discovered``.
+    Nothing here assumes a server: one point in, one measurement out.
     """
 
     name: str = "driver"

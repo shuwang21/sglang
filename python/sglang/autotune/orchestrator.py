@@ -217,12 +217,6 @@ class Orchestrator:
             measurement, task.objective, task.constraints
         )
         task.strategy.tell(measurement)
-        for extra in measurement.discovered:
-            # A profiler that sweeps candidates reports the same sibling from
-            # every call; the first sighting is the record.
-            if task.store is not None and extra.key in task.store:
-                continue
-            self._observe(extra)
         self._completed += 1
         logger.info("%s", self._progress_line(measurement, improved=improved))
 
