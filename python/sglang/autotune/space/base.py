@@ -30,7 +30,6 @@ __all__ = [
     "Knob",
     "FeasibilityRule",
     "Feasibility",
-    "Conditional",
     "Space",
 ]
 
@@ -170,23 +169,6 @@ class FeasibilityRule(ABC):
         """Return a human-readable reason if infeasible, else ``None``."""
 
 
-@dataclass(frozen=True)
-class Conditional:
-    """Knobs that only exist when a predicate over the base point holds.
-
-    Example: the ``speculative_num_steps`` / ``speculative_eagle_topk`` knobs
-    are meaningless unless ``speculative_algorithm`` is set. Without this,
-    a flat space wastes trials on assignments that collapse to the same
-    deployment.
-    """
-
-    when: Mapping[str, Any]
-    knobs: Sequence[Knob]
-
-    def applies(self, point: Point) -> bool:
-        return all(point.get(k) == v for k, v in self.when.items())
-
-
 class Space(ABC):
     """Base class for search spaces.
 
@@ -202,12 +184,10 @@ class Space(ABC):
         self,
         fixed: Optional[Mapping[str, Any]] = None,
         rules: Sequence[FeasibilityRule] = (),
-        conditionals: Sequence[Conditional] = (),
         context: Optional[Mapping[str, Any]] = None,
     ) -> None:
         self._fixed: Dict[str, Any] = dict(fixed or {})
         self._rules: List[FeasibilityRule] = list(rules)
-        self._conditionals: List[Conditional] = list(conditionals)
         # Hardware/model facts the rules need: gpu_count, compute capability,
         # model config. Populated by the config loader.
         self.context: Dict[str, Any] = dict(context or {})
@@ -236,16 +216,9 @@ class Space(ABC):
     def materialize(self, assignment: Mapping[str, Any]) -> Point:
         """Turn a partial knob assignment into a launchable point.
 
-        Applies fixed flags, then the assignment, then any conditional knobs
-        whose predicate now holds (left at their assigned value if present).
+        Fixed flags first, so an assignment can override one.
         """
-        values: Dict[str, Any] = {**self.fixed(), **dict(assignment)}
-        point = Point(values)
-        for conditional in self._conditionals:
-            if not conditional.applies(point):
-                for knob in conditional.knobs:
-                    values.pop(knob.name, None)
-        return Point(values)
+        return Point({**self.fixed(), **dict(assignment)})
 
     def baseline(self) -> Point:
         """The reference point: fixed flags plus each knob's first value.
@@ -262,21 +235,8 @@ class Space(ABC):
 
     # ---- exploration -----------------------------------------------------
 
-    def active_knobs(self, point: Point) -> List[Knob]:
-        active = list(self.knobs())
-        for conditional in self._conditionals:
-            if conditional.applies(point):
-                active.extend(conditional.knobs)
-        return active
-
     def sample(self, rng: random.Random) -> Point:
-        assignment = {k.name: k.domain.sample(rng) for k in self.knobs()}
-        point = self.materialize(assignment)
-        for conditional in self._conditionals:
-            if conditional.applies(point):
-                for knob in conditional.knobs:
-                    assignment[knob.name] = knob.domain.sample(rng)
-        return self.materialize(assignment)
+        return self.materialize({k.name: k.domain.sample(rng) for k in self.knobs()})
 
     def grid(self) -> Iterator[Point]:
         """Full Cartesian product, feasible points only.
@@ -322,7 +282,7 @@ class Space(ABC):
         twenty minutes into a run.
         """
         errors: List[str] = []
-        by_name = {k.name: k for k in self.active_knobs(point)}
+        by_name = {k.name: k for k in self.knobs()}
         for name, value in point.values.items():
             knob = by_name.get(name)
             if knob is None:

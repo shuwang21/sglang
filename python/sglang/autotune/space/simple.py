@@ -12,7 +12,6 @@ from typing import Any, Mapping, Optional, Sequence
 from sglang.autotune.registry import register_space
 from sglang.autotune.space.base import (
     Categorical,
-    Conditional,
     Domain,
     FeasibilityRule,
     Knob,
@@ -37,12 +36,9 @@ class SimpleSpace(Space):
         group: str = "misc",
         fixed: Optional[Mapping[str, Any]] = None,
         rules: Sequence[FeasibilityRule] = (),
-        conditionals: Sequence[Conditional] = (),
         context: Optional[Mapping[str, Any]] = None,
     ) -> None:
-        super().__init__(
-            fixed=fixed, rules=rules, conditionals=conditionals, context=context
-        )
+        super().__init__(fixed=fixed, rules=rules, context=context)
         self._knobs = tuple(
             Knob(name=name, domain=_as_domain(spec), group=group)
             for name, spec in knobs.items()
