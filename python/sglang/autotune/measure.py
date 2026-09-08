@@ -28,51 +28,22 @@ from sglang.autotune.types import (
     Workload,
 )
 
-__all__ = ["MeasurementDriver", "LoadPlan", "CapacitySearch"]
+__all__ = ["MeasurementDriver", "LoadPlan"]
 
 
 @dataclass
 class LoadPlan:
-    """How a driver should sweep load for one point.
-
-    Two shapes, both common:
-
-    * a fixed list of load points ("measure at qps 1, 2, 4"), or
-    * a capacity search ("find the highest qps that still meets the SLA").
-
-    The capacity search is a per-point inner loop rather than a strategy
-    concern, because it is not exploring the *config* space — it is
-    characterizing one config.
-    """
+    """The load points to measure one candidate at, e.g. qps 1, 2 and 4."""
 
     fixed: Tuple[LoadPoint, ...] = ()
-    search: Optional["CapacitySearch"] = None
 
     def __post_init__(self) -> None:
-        if not self.fixed and self.search is None:
+        if not self.fixed:
             self.fixed = (LoadPoint(),)
 
     @property
     def estimated_runs(self) -> int:
-        if self.search is not None:
-            return self.search.max_rounds + 1
         return max(1, len(self.fixed))
-
-
-@dataclass
-class CapacitySearch:
-    """Bisect request rate against the run's constraints.
-
-    ``tolerance`` is relative width of the bracket at which to stop; without a
-    round cap a noisy SLA boundary will bisect forever, so ``max_rounds`` is
-    mandatory, not advisory.
-    """
-
-    lower: float
-    upper: float
-    tolerance: float = 0.1
-    max_rounds: int = 5
-    max_concurrency: Optional[int] = None
 
 
 class MeasurementDriver(ABC):

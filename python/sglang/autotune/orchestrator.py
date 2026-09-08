@@ -25,7 +25,6 @@ from sglang.autotune.report import Reporter
 from sglang.autotune.task import TuneResult, TuneTask
 from sglang.autotune.types import (
     BudgetExhausted,
-    LoadPoint,
     Measurement,
     Point,
     Trial,
@@ -160,15 +159,9 @@ class Orchestrator:
         return self.task.strategy.should_prune(trial.point, partial_metrics)
 
     def _expand(self, point: Point, workloads: Sequence) -> Iterator[Trial]:
-        """One point becomes one trial per workload, load setting, and repeat.
-
-        A capacity search counts as a single trial: the bisect is an inner loop
-        inside the driver, because it characterizes one config rather than
-        exploring the config space.
-        """
+        """One point becomes one trial per workload, load setting, and repeat."""
         task = self.task
-        plan = task.load_plan
-        loads = (LoadPoint(),) if plan.search is not None else plan.fixed
+        loads = task.load_plan.fixed
         fidelity = task.fidelity_for(point)
         for workload in workloads:
             for load in loads:
