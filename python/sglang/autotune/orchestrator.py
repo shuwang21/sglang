@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 import signal
 import time
-from typing import Dict, Iterator, Optional, Sequence
+from typing import Dict, Iterator, List, Optional, Sequence
 
 from sglang.autotune.objective import pareto_front, rank_by_bucket
 from sglang.autotune.report import Reporter
@@ -81,9 +81,15 @@ class Orchestrator:
                 "ignoring %d trials recorded in a different environment",
                 len(recorded) - len(same_env),
             )
-        history = [m for m in same_env if m.status.is_settled]
-        if len(history) != len(same_env):
-            logger.info("retrying %d trials that failed", len(same_env) - len(history))
+        settled = [m for m in same_env if m.status.is_settled]
+        if len(settled) != len(same_env):
+            logger.info("retrying %d trials that failed", len(same_env) - len(settled))
+        history = self._complete_points_only(settled, workloads)
+        partial = len({m.trial.point.fingerprint for m in settled}) - len(
+            {m.trial.point.fingerprint for m in history}
+        )
+        if partial:
+            logger.info("re-proposing %d points measured only in part", partial)
         if history:
             logger.info("resuming with %d recorded trials", len(history))
         task.strategy.setup(
@@ -150,6 +156,27 @@ class Orchestrator:
                     self._partial_reason = task.budget.exhausted_reason()
                     task.executor.cancel_all()
                     return
+
+    def _complete_points_only(
+        self, history: Sequence[Measurement], workloads: Sequence
+    ) -> List[Measurement]:
+        """Drop points the store holds only part of.
+
+        Replaying one into the strategy marks that point proposed, and the
+        strategy then never asks for the trials that are missing: a run
+        interrupted partway through a point's repeats would rank it on however
+        many attempts it happened to finish. Re-proposing costs nothing for
+        what is already recorded -- the trial key names the attempt, so
+        _pre_screen hands those back from the store -- and only the gap runs.
+        """
+        recorded = {m.key for m in history}
+        points = {m.trial.point.fingerprint: m.trial.point for m in history}
+        complete = {
+            fingerprint
+            for fingerprint, point in points.items()
+            if all(t.key in recorded for t in self._expand(point, workloads))
+        }
+        return [m for m in history if m.trial.point.fingerprint in complete]
 
     def _expand(self, point: Point, workloads: Sequence) -> Iterator[Trial]:
         """One point becomes one trial per workload, load setting, and repeat."""

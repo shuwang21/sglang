@@ -11,6 +11,7 @@ from sglang.test.ci.ci_register import register_cpu_ci
 register_cpu_ci(est_time=10, suite="base-a-test-cpu")
 
 import tempfile
+from collections import Counter
 import unittest
 from pathlib import Path
 
@@ -348,6 +349,29 @@ class TestGridStrategy(CustomTestCase):
         self.assertEqual(result.best_point.get("backend"), "triton")
         # (300 - 100) / 200, the erratic point's own range over its median.
         self.assertAlmostEqual(max(e.spread for e in result.ranking), 1.0)
+
+    def test_a_resume_finishes_a_point_left_half_measured(self):
+        """An interrupted repeat set was never completed, and nothing said so.
+
+        Replaying a point's finished attempts marked the point proposed, so the
+        strategy never asked for the rest; the run then ranked that point on
+        however many attempts it happened to get, silently.
+        """
+        first = _build_task(
+            self.tmp, strategy=GridStrategy(), budget=Budget(max_trials=8)
+        )
+        first.repeats = 3
+        tune(first)
+        first.store.close()
+
+        second = _build_task(self.tmp, strategy=GridStrategy())
+        second.repeats = 3
+        result = tune(second)
+
+        per_point = Counter(m.trial.point.fingerprint for m in result.measurements)
+        self.assertEqual(sorted(per_point.values()), [3] * 6)
+        # Only the gap is remeasured, not the whole space over again.
+        self.assertEqual(len(second.driver.measured), 10)
 
     def test_estimated_trials_counts_every_repeat(self):
         """A plan that understates the cost threefold is worse than none."""
