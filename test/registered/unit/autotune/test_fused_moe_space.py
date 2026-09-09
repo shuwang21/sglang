@@ -1,4 +1,4 @@
-"""Feasibility rules for the fused MoE tile space."""
+"""Feasibility rules for the fused MoE tile space, and conditional knobs."""
 
 from sglang.test.ci.ci_register import register_cpu_ci
 
@@ -6,7 +6,9 @@ register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
 import unittest
 
+from sglang.autotune.space.base import Categorical, Conditional, Knob
 from sglang.autotune.space.fused_moe_triton import BlockKDivisible, SharedMemoryFits
+from sglang.autotune.space.simple import SimpleSpace
 from sglang.autotune.types import Point
 from sglang.test.test_utils import CustomTestCase
 
@@ -39,6 +41,61 @@ def _tile(block_m: int, block_n: int, block_k: int, num_stages: int) -> Point:
             "num_stages": num_stages,
         }
     )
+
+
+class TestConditionalKnobs(CustomTestCase):
+    """Knobs that exist only under another knob's value.
+
+    A flat space would spend trials on assignments that collapse to the same
+    deployment: with speculative_algorithm unset, every value of
+    speculative_num_steps launches an identical server.
+    """
+
+    def _space(self) -> SimpleSpace:
+        return SimpleSpace(
+            {"speculative_algorithm": [None, "EAGLE"]},
+            conditionals=[
+                Conditional(
+                    when={"speculative_algorithm": "EAGLE"},
+                    knobs=[
+                        Knob(name="speculative_num_steps", domain=Categorical((3, 5)))
+                    ],
+                )
+            ],
+        )
+
+    def test_the_dependent_knob_is_absent_when_the_predicate_fails(self):
+        space = self._space()
+        points = {
+            p.get("speculative_algorithm"): p
+            for p in space.grid()
+            if p.get("speculative_num_steps") is None
+        }
+        self.assertIn(None, points)
+        self.assertNotIn("speculative_num_steps", points[None].values)
+
+    def test_the_grid_expands_the_dependent_knob_only_where_it_applies(self):
+        combinations = [
+            (p.get("speculative_algorithm"), p.get("speculative_num_steps"))
+            for p in self._space().grid()
+        ]
+        self.assertCountEqual(combinations, [(None, None), ("EAGLE", 3), ("EAGLE", 5)])
+
+    def test_the_plan_does_not_understate_a_conditional_space(self):
+        """cardinality feeds estimated_trials; understating it misleads a plan.
+
+        Two base values and one two-valued dependent knob is three points; the
+        bound may exceed that but must not fall short of it.
+        """
+        self.assertGreaterEqual(self._space().cardinality, 3)
+
+    def test_validate_accepts_a_value_only_the_conditional_declares(self):
+        """active_knobs, not knobs: domain checking must see the extra knob."""
+        space = self._space()
+        point = Point({"speculative_algorithm": "EAGLE", "speculative_num_steps": 3})
+        self.assertEqual(space.validate(point), [])
+        bad = Point({"speculative_algorithm": "EAGLE", "speculative_num_steps": 99})
+        self.assertEqual(len(space.validate(bad)), 1)
 
 
 class TestSharedMemoryFits(CustomTestCase):

@@ -128,7 +128,7 @@ under a constraint it never actually enforced is worse than no tool.
 
 ```
 Task        = Model + Hardware + Workload + Objective + Constraints + Budget
-Space       = named knobs -> domains, + feasibility rules
+Space       = named knobs -> domains (+ conditionals, + feasibility rules)
 Point       = one concrete assignment of knobs (a tile config, a backend
               choice, a candidate deployment)
 Bucket      = the result partition a trial competes in ("" = one winner;
@@ -226,7 +226,7 @@ python/sglang/autotune/
 ├── store.py               # **TrialStore**
 ├── report.py              # **Reporter**
 ├── space/
-│   ├── base.py            # **Space, Knob, Domain, FeasibilityRule**
+│   ├── base.py            # **Space, Knob, Domain, FeasibilityRule, Conditional**
 │   ├── server_args.py     # knobs derived from ServerArgs metadata
 │   └── presets.py         # named knob families (attention, memory, moe, spec)
 ├── strategy/
@@ -354,6 +354,11 @@ space:
     prefill_attention_backend: [fa3, flashinfer]   # overrides the same knob in a preset
     decode_attention_backend: [fa3, flashinfer]
     speculative_algorithm: [null, EAGLE]
+  conditional:
+    - when: {speculative_algorithm: EAGLE}         # only sampled when the base knob matches
+      knobs:
+        speculative_num_steps: [3, 5]
+        speculative_eagle_topk: [4, 8]
 
 search:
   strategy: asha

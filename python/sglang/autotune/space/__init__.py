@@ -1,5 +1,6 @@
 from sglang.autotune.space.base import (
     Categorical,
+    Conditional,
     Domain,
     Feasibility,
     FeasibilityRule,
@@ -11,6 +12,7 @@ from sglang.autotune.space.base import (
 
 __all__ = [
     "Categorical",
+    "Conditional",
     "Domain",
     "Feasibility",
     "FeasibilityRule",

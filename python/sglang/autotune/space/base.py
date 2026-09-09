@@ -30,6 +30,7 @@ __all__ = [
     "Knob",
     "FeasibilityRule",
     "Feasibility",
+    "Conditional",
     "Space",
 ]
 
@@ -169,6 +170,23 @@ class FeasibilityRule(ABC):
         """Return a human-readable reason if infeasible, else ``None``."""
 
 
+@dataclass(frozen=True)
+class Conditional:
+    """Knobs that only exist when a predicate over the base point holds.
+
+    Example: the ``speculative_num_steps`` / ``speculative_eagle_topk`` knobs
+    are meaningless unless ``speculative_algorithm`` is set. Without this,
+    a flat space wastes trials on assignments that collapse to the same
+    deployment.
+    """
+
+    when: Mapping[str, Any]
+    knobs: Sequence[Knob]
+
+    def applies(self, point: Point) -> bool:
+        return all(point.get(k) == v for k, v in self.when.items())
+
+
 class Space(ABC):
     """Base class for search spaces.
 
@@ -184,10 +202,12 @@ class Space(ABC):
         self,
         fixed: Optional[Mapping[str, Any]] = None,
         rules: Sequence[FeasibilityRule] = (),
+        conditionals: Sequence[Conditional] = (),
         context: Optional[Mapping[str, Any]] = None,
     ) -> None:
         self._fixed: Dict[str, Any] = dict(fixed or {})
         self._rules: List[FeasibilityRule] = list(rules)
+        self._conditionals: List[Conditional] = list(conditionals)
         # Hardware/model facts the rules need: gpu_count, compute capability,
         # model config. Populated by the config loader.
         self.context: Dict[str, Any] = dict(context or {})
@@ -216,9 +236,16 @@ class Space(ABC):
     def materialize(self, assignment: Mapping[str, Any]) -> Point:
         """Turn a partial knob assignment into a launchable point.
 
-        Fixed flags first, so an assignment can override one.
+        Applies fixed flags, then the assignment, then any conditional knobs
+        whose predicate now holds (left at their assigned value if present).
         """
-        return Point({**self.fixed(), **dict(assignment)})
+        values: Dict[str, Any] = {**self.fixed(), **dict(assignment)}
+        point = Point(values)
+        for conditional in self._conditionals:
+            if not conditional.applies(point):
+                for knob in conditional.knobs:
+                    values.pop(knob.name, None)
+        return Point(values)
 
     def baseline(self) -> Point:
         """The reference point: fixed flags plus each knob's first value.
@@ -235,8 +262,21 @@ class Space(ABC):
 
     # ---- exploration -----------------------------------------------------
 
+    def active_knobs(self, point: Point) -> List[Knob]:
+        active = list(self.knobs())
+        for conditional in self._conditionals:
+            if conditional.applies(point):
+                active.extend(conditional.knobs)
+        return active
+
     def sample(self, rng: random.Random) -> Point:
-        return self.materialize({k.name: k.domain.sample(rng) for k in self.knobs()})
+        assignment = {k.name: k.domain.sample(rng) for k in self.knobs()}
+        point = self.materialize(assignment)
+        for conditional in self._conditionals:
+            if conditional.applies(point):
+                for knob in conditional.knobs:
+                    assignment[knob.name] = knob.domain.sample(rng)
+        return self.materialize(assignment)
 
     def grid(self) -> Iterator[Point]:
         """Full Cartesian product, feasible points only.
@@ -249,15 +289,47 @@ class Space(ABC):
         knobs = [k for k in self.knobs() if k.domain.enumerate()]
         domains = [k.domain.enumerate() or [] for k in knobs]
         for combo in itertools.product(*domains):
-            point = self.materialize(dict(zip((k.name for k in knobs), combo)))
-            if self.feasible(point).ok:
-                yield point
+            base = dict(zip((k.name for k in knobs), combo))
+            for assignment in self._with_conditionals(base):
+                point = self.materialize(assignment)
+                if self.feasible(point).ok:
+                    yield point
+
+    def _with_conditionals(self, base: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
+        """``base`` crossed with the knobs whose predicate it satisfies.
+
+        Conditional knobs are not in :meth:`knobs`, so the product above cannot
+        reach them; without this a grid search silently never tries any of them.
+        """
+        extra = [
+            k
+            for conditional in self._conditionals
+            if conditional.applies(self.materialize(base))
+            for k in conditional.knobs
+            if k.domain.enumerate()
+        ]
+        if not extra:
+            yield base
+            return
+        for combo in itertools.product(*(k.domain.enumerate() for k in extra)):
+            yield {**base, **dict(zip((k.name for k in extra), combo))}
 
     @property
     def cardinality(self) -> Optional[int]:
-        """Size of the full grid, or ``None`` if any domain is continuous."""
+        """Upper bound on the grid, or ``None`` if any domain is continuous.
+
+        An upper bound rather than the exact count, because a conditional's
+        knobs multiply only the base points whose predicate holds, and finding
+        which those are means enumerating the base product -- which is the one
+        thing this property exists to avoid. Counting them everywhere
+        overstates; ignoring them understates, and a plan that understates its
+        own cost is the worse failure.
+        """
         total = 1
-        for knob in self.knobs():
+        knobs = list(self.knobs()) + [
+            k for conditional in self._conditionals for k in conditional.knobs
+        ]
+        for knob in knobs:
             size = knob.domain.size
             if size is None:
                 return None
@@ -282,7 +354,7 @@ class Space(ABC):
         twenty minutes into a run.
         """
         errors: List[str] = []
-        by_name = {k.name: k for k in self.knobs()}
+        by_name = {k.name: k for k in self.active_knobs(point)}
         for name, value in point.values.items():
             knob = by_name.get(name)
             if knob is None:
