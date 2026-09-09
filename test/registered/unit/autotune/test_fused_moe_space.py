@@ -6,9 +6,16 @@ register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
 import unittest
 
+import torch
+
+from sglang.autotune.driver.fused_moe_triton import MoeShape
 from sglang.autotune.space.base import Categorical, Conditional, Knob
 from sglang.autotune.space.fused_moe_triton import BlockKDivisible, SharedMemoryFits
+from sglang.autotune.space.fused_moe_triton import MoeTileSpace
 from sglang.autotune.space.simple import SimpleSpace
+from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_config import (
+    _get_cuda_shared_memory_per_block_optin,
+)
 from sglang.autotune.types import Point
 from sglang.test.test_utils import CustomTestCase
 
@@ -30,6 +37,22 @@ L4_OBSERVATIONS = [
 ]
 
 
+def _shape(torch_dtype, flags: dict) -> MoeShape:
+    """A MoeShape without touching a model config: only dtype matters here."""
+    shape = MoeShape.__new__(MoeShape)
+    shape.torch_dtype = torch_dtype
+    shape.dtype_flags = {
+        name: flags.get(name, False)
+        for name in (
+            "use_fp8_w8a8",
+            "use_int8_w8a8",
+            "use_int8_w8a16",
+            "use_int4_w4a16",
+        )
+    }
+    return shape
+
+
 def _tile(block_m: int, block_n: int, block_k: int, num_stages: int) -> Point:
     return Point(
         {
@@ -41,6 +64,35 @@ def _tile(block_m: int, block_n: int, block_k: int, num_stages: int) -> Point:
             "num_stages": num_stages,
         }
     )
+
+
+class TestSharedMemoryRuleAdmission(CustomTestCase):
+    """The rule applies only where its element size is known.
+
+    itemsize was hardcoded to 2 and never supplied by the CLI, so a quantized
+    run charged 1-byte operands at 2 bytes, doubled the requirement, and
+    rejected tiles that fit. Those were recorded infeasible and never measured,
+    and the run still reported a winner from what was left.
+    """
+
+    def test_an_unquantized_dtype_supplies_its_element_size(self):
+        shape = _shape(torch.bfloat16, {})
+        self.assertEqual(shape.smem_itemsize, 2)
+
+    def test_a_quantized_dtype_declines_to_name_one(self):
+        for flag in ("use_fp8_w8a8", "use_int8_w8a16", "use_int4_w4a16"):
+            with self.subTest(flag=flag):
+                self.assertIsNone(_shape(torch.bfloat16, {flag: True}).smem_itemsize)
+
+    def test_the_space_omits_the_rule_when_the_size_is_unknown(self):
+        with_size = MoeTileSpace(itemsize=2)
+        without = MoeTileSpace(itemsize=None)
+        names = lambda space: {r.name for r in space._rules}
+        self.assertNotIn("shared_memory_fits", names(without))
+        # Only meaningful where a device limit exists to compare against; off
+        # GPU neither space carries the rule and the contrast is vacuous.
+        if _get_cuda_shared_memory_per_block_optin() is not None:
+            self.assertIn("shared_memory_fits", names(with_size))
 
 
 class TestConditionalKnobs(CustomTestCase):

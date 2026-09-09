@@ -112,6 +112,20 @@ class MoeShape:
             self.block_shape,
         )
 
+    @property
+    def smem_itemsize(self) -> Optional[int]:
+        """Bytes per element triton stages, or None when that is not one number.
+
+        The shared-memory rule assumes both GEMM operands have the same element
+        size, which holds only for an unquantized dtype. `int8_w8a16` is 2
+        bytes against 1 and `int4_w4a16` is 2 against a half, and no quantized
+        path has been checked against the OutOfResources figures the formula
+        was fitted to. None means the caller must not apply the rule.
+        """
+        if any(self.dtype_flags.values()):
+            return None
+        return torch.finfo(self.torch_dtype).bits // 8
+
     def weight_bytes(self) -> int:
         """Device memory the synthetic w1 and w2 will take, for a dry run."""
         element = torch.finfo(self.torch_dtype).bits // 8

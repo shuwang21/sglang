@@ -286,7 +286,7 @@ def build_moe_task(args: argparse.Namespace) -> TuneTask:
     return _shared(
         args,
         name=f"fused-moe-{Path(args.model_path).name}-tp{args.tp_size}",
-        space=MoeTileSpace(block_shape=shape.block_shape),
+        space=MoeTileSpace(block_shape=shape.block_shape, itemsize=shape.smem_itemsize),
         strategy=_strategy(args),
         driver=driver,
         objective=ScalarObjective(metric=KERNEL_TIME_US, direction=Direction.MINIMIZE),

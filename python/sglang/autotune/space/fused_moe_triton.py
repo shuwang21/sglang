@@ -80,19 +80,28 @@ class MoeTileSpace(Space):
     Deriving the per-knob domains from ``get_configs_compute_bound()`` rather
     than restating them keeps this space and the standalone tuner searching the
     same set as the platform lists change.
+
+    ``itemsize`` is the bytes per element both GEMM operands are staged at.
+    ``None`` means the caller could not name one, and the shared-memory rule is
+    then left out rather than applied with a guess.
     """
 
     def __init__(
         self,
         block_shape: Optional[Sequence[int]] = None,
-        itemsize: int = 2,
+        itemsize: Optional[int] = None,
     ) -> None:
         candidates = get_configs_compute_bound()
         rules: List[FeasibilityRule] = []
         if block_shape is not None and all(block_shape):
             rules.append(BlockKDivisible(block_k=block_shape[1]))
         smem_limit = _get_cuda_shared_memory_per_block_optin()
-        if smem_limit is not None:
+        # Both conditions are the caller's to establish: the device limit, and
+        # an element size the formula can use. Skipping the rule costs a
+        # compile per oversized tile, which the driver records as OOM;
+        # guessing the element size would reject tiles that do fit, and those
+        # are never measured and never appear in the report.
+        if smem_limit is not None and itemsize is not None:
             rules.append(SharedMemoryFits(limit_bytes=smem_limit, itemsize=itemsize))
         super().__init__(rules=rules)
         self._knobs = tuple(
