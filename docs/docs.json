@@ -1025,7 +1025,8 @@
                 "group": "Benchmarking",
                 "pages": [
                   "docs/developer_guide/benchmark_and_profiling",
-                  "docs/developer_guide/bench_serving"
+                  "docs/developer_guide/bench_serving",
+                  "docs/developer_guide/auto_tune_design"
                 ]
               },
               "docs/developer_guide/evaluating_new_models",

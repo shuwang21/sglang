@@ -1,0 +1,277 @@
+"""Concurrent trials, one worker process per GPU slot."""
+
+from __future__ import annotations
+
+import logging
+import os
+import select
+import signal
+import subprocess
+import sys
+from typing import Dict, Iterator, List, Optional, Sequence
+
+from sglang.autotune.executor.base import Executor, Submission, TrialSlot
+from sglang.autotune.executor.worker import (
+    REPLY_FD_ENV,
+    read_message,
+    write_message,
+)
+from sglang.autotune.measure import MeasurementDriver
+from sglang.autotune.registry import register_executor
+from sglang.autotune.types import (
+    FailureKind,
+    Measurement,
+    Trial,
+    TrialStatus,
+    Workload,
+)
+
+logger = logging.getLogger(__name__)
+
+__all__ = ["PoolExecutor", "build_slots"]
+
+_WORKER_MODULE = "sglang.autotune.executor.worker"
+
+
+def build_slots(
+    gpu_count: int,
+    gpus_per_trial: int,
+    *,
+    host: str = "127.0.0.1",
+    base_port: int = 31000,
+    port_stride: int = 100,
+) -> List[TrialSlot]:
+    """Partition the GPUs into reservations, one per concurrent trial.
+
+    Ports are spaced rather than consecutive: a server takes a range above the
+    one it is given, so adjacent slots would otherwise collide.
+    """
+    per = max(1, gpus_per_trial)
+    count = max(1, gpu_count // per)
+    return [
+        TrialSlot(
+            index=i,
+            gpu_ids=tuple(range(i * per, (i + 1) * per)),
+            host=host,
+            port=base_port + i * port_stride,
+        )
+        for i in range(count)
+    ]
+
+
+class _Worker:
+    """A slot's subprocess, and the one trial it may be running."""
+
+    def __init__(
+        self,
+        slot: TrialSlot,
+        driver: MeasurementDriver,
+        workloads: Sequence[Workload],
+        grace_s: float = 30.0,
+    ) -> None:
+        self.slot = slot
+        self.grace_s = grace_s
+        self.trial: Optional[Trial] = None
+        # Pinning has to be in the child's environment from the start: torch
+        # reads CUDA_VISIBLE_DEVICES when it first initialises CUDA, and by
+        # then a forked child has already inherited the parent's context.
+        env = {**os.environ, **slot.env()}
+        # Replies travel on their own fd so the child's stdout stays free for
+        # the server output a driver tees there; sharing it would splice log
+        # text into a length-prefixed pickle stream. Inheriting stdout and
+        # stderr is also what makes a running trial visible.
+        reply_r, reply_w = os.pipe()
+        self.process = subprocess.Popen(
+            [sys.executable, "-m", _WORKER_MODULE],
+            stdin=subprocess.PIPE,
+            env={**env, REPLY_FD_ENV: str(reply_w)},
+            pass_fds=(reply_w,),
+            # Its own process group, so a hard kill takes the server the driver
+            # launched with it. A worker blocked inside measure() cannot run
+            # its own teardown, and an orphaned server holds a port and the
+            # GPU against every later trial in this slot.
+            start_new_session=True,
+        )
+        os.close(reply_w)
+        self.replies = os.fdopen(reply_r, "rb")
+        self.ready = False
+        write_message(
+            self.process.stdin,
+            {"driver": driver, "slot": slot, "workloads": list(workloads)},
+        )
+
+    def await_ready(self) -> None:
+        """Block until the child has imported and prepared. Spawn first.
+
+        Separate from the constructor so a pool starts its slots in parallel:
+        a worker spends seconds importing sglang before it says anything, and
+        waiting for each one in turn puts slot count times that in front of the
+        first trial.
+        """
+        if self.ready:
+            return
+        if read_message(self.replies) is None:
+            raise RuntimeError(
+                f"slot {self.slot.index} worker died during setup; its output is above"
+            )
+        self.ready = True
+
+    @property
+    def busy(self) -> bool:
+        return self.trial is not None
+
+    def send(self, submission: Submission) -> None:
+        self.trial = submission.trial
+        write_message(
+            self.process.stdin,
+            {"trial": submission.trial, "timeout_s": submission.timeout_s},
+        )
+
+    def receive(self) -> Optional[Measurement]:
+        """Read the finished measurement. Only call once the pipe is readable."""
+        if self.trial is None:
+            return None
+        reply = read_message(self.replies)
+        trial, self.trial = self.trial, None
+        if reply is None:
+            # The pipe closed, so the child is gone: an OOM kill or a segfault
+            # in the driver. The trial still owes the orchestrator a result.
+            return Measurement(
+                trial=trial,
+                status=TrialStatus.FAILED,
+                failure=FailureKind.SERVER_CRASH,
+                message=f"slot {self.slot.index} worker exited during the trial",
+            )
+        return reply["measurement"]
+
+    def close(self) -> None:
+        if self.process.poll() is None:
+            self.process.stdin.close()
+            try:
+                self.process.wait(timeout=self.grace_s)
+            except subprocess.TimeoutExpired:
+                self._kill_group()
+                self.process.wait(timeout=10)
+        for handle in (self.process.stdin, self.replies):
+            if handle is not None and not handle.closed:
+                handle.close()
+
+    def _kill_group(self) -> None:
+        try:
+            os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            self.process.kill()
+
+
+@register_executor("pool")
+class PoolExecutor(Executor):
+    """One trial per slot, several slots at once.
+
+    The largest wall-clock win available whenever a candidate needs fewer GPUs
+    than the host has: eight one-GPU kernel trials on eight GPUs. It is not a
+    win for a candidate that already spans every GPU -- there
+    ``concurrent_trials`` is one and the serial executor is simpler.
+    """
+
+    def __init__(
+        self,
+        driver: MeasurementDriver,
+        slots: Sequence[TrialSlot],
+        workloads: Sequence[Workload] = (),
+        close_grace_s: float = 30.0,
+    ) -> None:
+        if not slots:
+            raise ValueError("a pool needs at least one slot")
+        self.driver = driver
+        self.slots = list(slots)
+        self.workloads = list(workloads)
+        # A server needs time to release its GPU memory on the way out; only a
+        # worker that ignores that gets the group kill.
+        self.close_grace_s = close_grace_s
+        self._workers: Dict[int, _Worker] = {}
+        self._queue: List[Submission] = []
+        self._abandoned: List[Trial] = []
+        self._cancelled = False
+
+    @property
+    def capacity(self) -> int:
+        return len(self.slots)
+
+    @property
+    def free_slots(self) -> int:
+        running = sum(1 for w in self._workers.values() if w.busy)
+        return max(0, self.capacity - running - len(self._queue))
+
+    def submit(
+        self,
+        trial: Trial,
+        *,
+        timeout_s: Optional[float] = None,
+    ) -> None:
+        self._queue.append(Submission(trial=trial, timeout_s=timeout_s))
+        self._dispatch()
+
+    def _dispatch(self) -> None:
+        if self._cancelled:
+            return
+        # Every slot at once, before waiting on any of them: a worker spends
+        # seconds importing sglang before it says it is ready, and the
+        # orchestrator submits one trial at a time, so starting a slot only
+        # when its first trial arrives puts every slot's import end to end in
+        # front of the run.
+        for slot in self.slots:
+            if slot.index in self._workers:
+                continue
+            self._workers[slot.index] = _Worker(
+                slot, self.driver, self.workloads, grace_s=self.close_grace_s
+            )
+            logger.info("slot %d on GPU %s", slot.index, slot.visible_devices or "-")
+        for slot in self.slots:
+            if not self._queue:
+                return
+            worker = self._workers[slot.index]
+            if not worker.busy:
+                worker.await_ready()
+                worker.send(self._queue.pop(0))
+
+    def drain(self, block: bool = True) -> Iterator[Measurement]:
+        # Trials the run gave up on still owe the orchestrator a result: it
+        # counts in flight as submissions minus yields, and would wait forever.
+        while self._abandoned:
+            yield Measurement(
+                trial=self._abandoned.pop(0),
+                status=TrialStatus.FAILED,
+                failure=FailureKind.CANCELLED,
+                message="cancelled before completion",
+            )
+
+        while True:
+            busy = {w.replies: w for w in self._workers.values() if w.busy}
+            if not busy:
+                return
+            # Waiting on whichever pipe speaks first, rather than on each in
+            # turn: a slot blocked behind a slow neighbour is a slot not
+            # working, which is the whole point of a pool.
+            ready, _, _ = select.select(list(busy), [], [], None if block else 0)
+            for stream in ready:
+                measurement = busy[stream].receive()
+                if measurement is not None:
+                    yield measurement
+            self._dispatch()
+            if not block or not ready:
+                return
+
+    def cancel_all(self) -> None:
+        self._cancelled = True
+        self._abandoned.extend(s.trial for s in self._queue)
+        self._queue.clear()
+        for worker in self._workers.values():
+            if worker.trial is not None:
+                self._abandoned.append(worker.trial)
+                worker.trial = None
+            worker.close()
+
+    def close(self) -> None:
+        for worker in self._workers.values():
+            worker.close()
+        self._workers.clear()

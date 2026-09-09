@@ -1,25 +1,16 @@
-import importlib.util
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import torch
 
+from sglang.srt.layers.moe.moe_runner.triton_utils import fused_moe_triton_tuning
 from sglang.test.ci.ci_register import register_cpu_ci
 
 register_cpu_ci(est_time=3, suite="base-a-test-cpu")
 
 
 def _load_common_utils():
-    source = (
-        Path(__file__).resolve().parents[5]
-        / "benchmark/kernels/fused_moe_triton/common_utils.py"
-    )
-    spec = importlib.util.spec_from_file_location("fused_moe_common_utils", source)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
-    return module
+    return fused_moe_triton_tuning
 
 
 def test_get_model_config_supports_kimi_vl():
