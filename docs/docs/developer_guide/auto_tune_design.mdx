@@ -128,7 +128,7 @@ under a constraint it never actually enforced is worse than no tool.
 
 ```
 Task        = Model + Hardware + Workload + Objective + Constraints + Budget
-Space       = named knobs -> domains (+ conditionals, + feasibility rules)
+Space       = named knobs -> domains, + feasibility rules
 Point       = one concrete assignment of knobs (a tile config, a backend
               choice, a candidate deployment)
 Bucket      = the result partition a trial competes in ("" = one winner;
@@ -151,8 +151,7 @@ The central loop is deliberately boring:
 while not budget.exhausted():
     for point in strategy.ask(n=executor.free_slots):
         for trial in trials_for(point):               # one per workload x load
-            executor.submit(trial, timeout_s=budget.remaining_seconds(),
-                            prune_check=strategy.should_prune)
+            executor.submit(trial, timeout_s=budget.remaining_seconds())
     for measurement in executor.drain():
         store.record(measurement)
         strategy.tell(measurement)
@@ -167,7 +166,7 @@ Ranking is per **point**, not per measurement: a point is measured once per
 only if every one of its measurements is. `Objective.aggregate()` is the hook
 that turns a point's measurements into one score. The v1 default handles the
 single-measurement case and returns "unrankable" otherwise, so a multi-workload
-config fails loudly until an aggregating objective is supplied (§15). Only
+config fails loudly until an aggregating objective is supplied (§16). Only
 full-fidelity measurements enter the ranking; reduced-fidelity rungs are a
 strategy's private signal.
 
@@ -223,11 +222,11 @@ python/sglang/autotune/
 ├── registry.py            # **name -> class, per component kind**
 ├── orchestrator.py        # **Orchestrator, tune()**
 ├── objective.py           # **Objective, Constraint, Evaluation, pareto_front**
-├── measure.py             # **MeasurementDriver, LoadPlan, CapacitySearch**
+├── measure.py             # **MeasurementDriver, LoadPlan**
 ├── store.py               # **TrialStore**
 ├── report.py              # **Reporter**
 ├── space/
-│   ├── base.py            # **Space, Knob, Domain, FeasibilityRule, Conditional**
+│   ├── base.py            # **Space, Knob, Domain, FeasibilityRule**
 │   ├── server_args.py     # knobs derived from ServerArgs metadata
 │   └── presets.py         # named knob families (attention, memory, moe, spec)
 ├── strategy/
@@ -269,9 +268,9 @@ class CoordinateDescent(Strategy):
 | Extension point | Contract | Ship in v1 | Why you would add one |
 | --- | --- | --- | --- |
 | `Space` | `knobs()`, `feasible()` | `server_args`, presets | New subsystem knobs (PD, HiCache, elastic EP) |
-| `Strategy` | `ask` / `tell`, optional `should_prune` | `grid`, `random`, `coordinate`, `asha` | Bayesian/Optuna, cost-aware search |
-| `Executor` | `submit(trial, timeout_s, prune_check)` / `drain`; every submission yields one measurement, cancelled ones as `CANCELLED` | `serial`, `pool` | Slurm, k8s, multi-node PD topologies |
-| `MeasurementDriver` | `measure(trial, slot, timeout_s, prune_check)`; may attach `Measurement.discovered` for sweep-in-one-call tools | `moe_triton`, `serving`, `offline` | cutlass profiler, allreduce, attention microbench, RL loop, multimodal |
+| `Strategy` | `ask` / `tell` | `grid`, `random`, `coordinate`, `asha` | Bayesian/Optuna, cost-aware search |
+| `Executor` | `submit(trial, timeout_s)` / `drain`; every submission yields one measurement, cancelled ones as `CANCELLED` | `serial`, `pool` | Slurm, k8s, multi-node PD topologies |
+| `MeasurementDriver` | `measure(trial, slot, timeout_s)` | `moe_triton`, `serving`, `offline` | cutlass profiler, allreduce, attention microbench, RL loop, multimodal |
 | `Objective` | `components()` per measurement, `aggregate()` per point | `scalar`, Pareto | Multi-workload aggregation, custom scalarization, cost per token |
 | `Constraint` | `check()` | `MetricThreshold` | Per-tenant SLOs, accuracy gates |
 | `TrialStore` | `record` / `history` | `jsonl` | Shared team DB, W&B, MLflow |
@@ -355,11 +354,6 @@ space:
     prefill_attention_backend: [fa3, flashinfer]   # overrides the same knob in a preset
     decode_attention_backend: [fa3, flashinfer]
     speculative_algorithm: [null, EAGLE]
-  conditional:
-    - when: {speculative_algorithm: EAGLE}         # only sampled when the base knob matches
-      knobs:
-        speculative_num_steps: [3, 5]
-        speculative_eagle_topk: [4, 8]
 
 search:
   strategy: asha
@@ -397,14 +391,19 @@ Two cross-cutting mechanisms available to any strategy:
 
 - **Multi-fidelity.** A trial can run reduced (fewer prompts, one workload
   slice). `Fidelity.level` 0 is full; higher levels are cheaper rungs, and
-  `level`, `scale`, and `repeats` are all part of the trial key. ASHA uses
-  rungs for promotion only: reduced-fidelity measurements never enter the final
-  ranking, so a winner is always a full-run winner. The QPS capacity search is
-  a per-point inner loop in the driver rather than a strategy concern, since it
-  characterizes one config rather than exploring the space.
-- **Incumbent pruning.** If partial metrics already violate a constraint, abort
-  and record `PRUNED` rather than paying for the full run. Strategies opt in via
-  `should_prune()`; the default never prunes.
+  `level`, `scale`, and `repeats` are all part of the trial key, and so is the
+  attempt number, so the repeats of one point are separate records rather than
+  one record written N times. ASHA would use rungs for promotion only:
+  reduced-fidelity measurements never enter the final ranking, so a winner is
+  always a full-run winner. Only `repeats` is implemented; `level` and `scale`
+  wait for the first strategy that reduces fidelity.
+- **Aborting a hopeless trial.** An earlier draft had the executor call back
+  into the strategy with partial metrics. No strategy ever implemented it, and
+  the shape does not survive a real executor: a callable cannot cross a process
+  boundary, so the subprocess pool had to refuse the parameter outright. The
+  abort that the measurements actually argue for is elapsed-time based (§10.1),
+  which the parent does with a clock and no callback. `TrialStatus.PRUNED`
+  remains the status for whoever ends up doing it.
 
 Recommended defaults: `asha` for a cold start, `coordinate` when the config
 supplies a non-trivial `space.fixed` baseline.
@@ -413,20 +412,38 @@ supplies a non-trivial `space.fixed` baseline.
 
 ### 9.1 Serving driver
 
-Launch `python -m sglang.launch_server`, poll with
-`benchmark.serving.wait_for_endpoint`, drive load with
-`benchmark.serving.run_benchmark`, tear down. Hardening the framework requires:
+Launch through `test.test_utils.popen_launch_server`, drive load with
+`benchmark.steady_state_serving.run_steady_state_benchmark`, tear down. The
+client's arguments come from `benchmark.serving.build_parser()` rather than a
+hand-built namespace, so this driver cannot drift as the benchmark gains flags,
+and a flag it gets wrong fails on a dry run instead of after a server is up.
+
+What the trial has to get right, all of it implemented:
 
 - one process group per trial with guaranteed teardown on timeout and SIGINT —
-  an orphaned server holding a port and 80 GB of HBM poisons every later trial;
+  an orphaned server holding a port and 80 GB of HBM poisons every later trial.
+  A worker blocked inside `measure()` cannot run its own teardown, so the pool
+  starts each worker in its own session and hard-kills the group;
 - per-trial timeout derived from the *remaining budget*, not a constant — the
   orchestrator passes it on every `submit()`, and the executor forwards it to
   `measure()` unchanged;
 - structured failure classification (OOM / port in use / unsupported flag /
   model load / crash / health timeout) recorded on the trial, so a report can
-  say "6 of 24 candidates OOMed" instead of "6 failed";
+  say "6 of 24 candidates OOMed" instead of "6 failed". The classification
+  reads the server's log tail first and falls back to the exception type,
+  because the launcher reports only an exit code while the server said why one
+  screen above;
+- the launch environment is this process's plus the slot's pinning. `TrialSlot`
+  yields an *overlay*, and passing that alone as the environment starts a
+  server with no PATH and no Hugging Face cache;
 - provenance capture — git SHA, `sglang.version`, torch/CUDA/driver, GPU model,
-  relevant `SGLANG_*` env vars with secrets scrubbed.
+  the model path, relevant `SGLANG_*` env vars with secrets scrubbed.
+
+`--load-format presharded` is offered so a sweep pays the weight load once. Its
+cache goes under the run's output directory, never the loader's default of
+`<model_path>/presharded`: with a Hugging Face repo id that default is a
+relative path, and creating it makes transformers resolve the repo id to a
+directory with no `config.json` for every later run on that machine.
 
 ### 9.2 Pool executor
 
@@ -436,6 +453,16 @@ port. This is the largest wall-clock win available for small-model tuning — ei
 1-GPU trials on an 8-GPU host — and needs only slot and port bookkeeping, which
 is why `TrialSlot` is a first-class type. Multi-node executors (PD topologies,
 cross-node EP) are a later extension behind the same `Executor` protocol.
+
+A slot is a subprocess, not a thread, for three separate reasons:
+`CUDA_VISIBLE_DEVICES` must be set before the process touches CUDA; the serving
+benchmark client keeps its arguments in a module global; and a trial that takes
+its process down must not take the run with it. The parent talks to each worker
+over a dedicated pipe rather than stdout, because a serving driver tees its
+server's output to stdout and log text spliced into a length-prefixed pickle
+stream corrupts it. Slots are started together and awaited afterwards: a worker
+spends seconds importing sglang before it answers, and starting them in turn
+puts every slot's import end to end in front of the first trial.
 
 ### 9.3 Kernel drivers and the two-layer composition
 
@@ -448,7 +475,7 @@ the executor is the multi-GPU worker pool the tuning scripts already have.
 | Kernel | Space | Bucket | Driver wraps | Output |
 | --- | --- | --- | --- | --- |
 | triton fused MoE | `BLOCK_SIZE_M/N/K`, `GROUP_SIZE_M`, `num_warps`, `num_stages` | batch size | `benchmark/kernels/fused_moe_triton/tuning_fused_moe_triton.py` | per-shape JSON under `moe_runner/triton_utils/configs/` |
-| cutlass GEMM | kernel variant list | (M, N, K) | cutlass profiler; one call sweeps every variant, returned via `Measurement.discovered` | kernel selection table |
+| cutlass GEMM | kernel variant list | (M, N, K) | cutlass profiler; one call sweeps every variant, so this driver needs batch submission the executor does not have yet | kernel selection table |
 | allreduce | `{custom, nccl, nccl_symm, torch_symm}` | message size | allreduce microbench | dispatch thresholds |
 | attention / MoE runner backend | backend choice | (batch, seq_len) | per-backend microbench | dispatch thresholds |
 | speculative decoding | `num_steps`, `topk`, `num_draft_tokens` | batch size | serving or offline driver, decode-only workload | per-batch-size table |
@@ -474,7 +501,111 @@ defaults to; the outer layer re-checks it end-to-end only when asked.
   the value of zero-measurement presets; `space.presets` can seed the first
   candidate from such heuristics rather than an arbitrary baseline.
 
-## 10. State, resume, and reproducibility
+## 10. What the prototypes measured
+
+Both layers were run end to end on one NVIDIA L4 (23 GB, 72 W cap) on
+2026-09-07. The point was not to produce tuned configs -- an L4 is not a
+serving target -- but to find out which parts of this design survive contact
+with a GPU. Several did not.
+
+### 10.1 Kernel layer: triton fused MoE
+
+`Qwen1.5-MoE-A2.7B`, tp=1, ep=1, bf16, giving E=60, topk=4, hidden=2048,
+shard_intermediate=2816. 32 tile configs across batch sizes 1, 64 and 1024:
+96 trials in 12.3 minutes, 63 ok, 33 infeasible, 0 failed.
+
+- **Bucketing earned its place.** Batch 1 and 64 both chose
+  `BLOCK_K=256 M=32 N=32 stages=4 warps=4`; batch 1024 chose
+  `BLOCK_K=128 M=128 N=64 stages=3 warps=8`. Neither appears in the other's
+  top ten. A single winner would have been wrong for two of the three shapes.
+- **Feasibility-before-spend works.** The shared-memory rule
+  (`(stages - 1) * (BLOCK_M + BLOCK_N) * BLOCK_K * itemsize <= 101376`)
+  rejected 33 of 96 candidates without launching them, and nothing leaked past
+  it: zero trials failed on the GPU.
+- **Headroom shrinks as a kernel becomes bandwidth-bound.** Top-ten spread was
+  21% at batch 1024 but 2-4% at batches 1 and 64.
+- **Cost is wildly uneven.** One tile ran 48x slower than the best and by
+  itself consumed 66% of the run's wall clock. This is the strongest argument
+  for an elapsed-time abort -- which the parent can do with a clock, and which
+  is why the strategy callback in §8 was removed rather than implemented.
+
+### 10.2 Serving layer: deployment knobs
+
+`Qwen/Qwen2.5-0.5B-Instruct`, 200 prompts, 1024 in / 256 out, concurrency 32,
+ranked on `steady_output_throughput` under a 500 ms p99 TTFT constraint.
+
+The environment was **not** consistent with the branch's pinned dependencies
+(the studio carried an older `sglang-kernel`, so the run needed
+`SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK=1`). Treat the throughput figures as
+evidence that the loop closes, not as a Qwen-on-L4 baseline.
+
+A full 3x3 grid over `chunked_prefill_size` x `mem_fraction_static`, 9 trials,
+all ok, reported `chunked_prefill_size` 8192 > 4096 > 2048 at every
+`mem_fraction_static`, worth about 3.5% end to end. `mem_fraction_static`
+showed no effect its own runs agreed on.
+
+### 10.3 The finding that changed the design
+
+A later run of the same sweep, on the same GPU and the same model, **reversed
+it**: 2048 > 4096 > 8192, winner by 0.77%.
+
+Two runs, opposite winners, and both wrote a confident `best.yaml` that said
+nothing about how close the runner-up was.
+
+A separate control -- the same points measured through the subprocess pool and
+in-process, same seed -- put the framework's own noise at about 0.01% at batch
+64 and 1.5% at batch 1024 for the kernel layer. A serving trial is a whole
+server launch plus 200 requests, so its noise can only be larger. That settles
+the margins rather than the winners: the kernel run's 0.35% lead at batch 64 is
+real against 0.01% noise, and neither serving result is.
+
+The response is `Fidelity.repeats`, a field that had carried the intent since
+the first commit with no implementation behind it. A run now measures each
+point N times in separate processes, ranking takes the median of each group,
+and the report states the widest observed spread beside the margin and whether
+the lead clears it. Open question 3 in §16 asked whether to require a
+significance margin before declaring a winner; the answer these runs give is
+that a margin printed without a spread beside it cannot be read at all.
+
+### 10.4 What running both layers bought that reading could not
+
+The prototypes found roughly a dozen framework defects, most on failure paths.
+Two are worth recording because they are the case for sharing a layer at all --
+each was paid for by one layer and collected by the other.
+
+- **The pool executor was built for kernel tuning and debugged by serving.**
+  Its motivation is N cheap single-GPU trials on N GPUs. Three of its bugs are
+  ones kernel tuning cannot expose in principle: the worker's pickle protocol
+  shared stdout with the server log a driver tees there; slots started one at a
+  time, each waiting out the next worker's import; and the server was launched
+  with the slot's environment *overlay* as its whole environment, so it had no
+  PATH and no Hugging Face cache.
+- **`repeats` was motivated by serving and is needed by the kernel layer.**
+  The kernel run's batch-64 noise is 0.01%, which looks like nothing worth
+  fixing. Its batch-1024 noise is 1.5%, and that layer had been declaring
+  winners with no notion of it.
+
+The single worst defect: the trial key did not include the model, so a second
+run over the same knobs with a different model would have reported the first
+model's numbers as its own.
+
+### 10.5 What the prototypes did not establish
+
+- **Multi-GPU isolation is unverified.** Every run had one GPU available, so
+  `CUDA_VISIBLE_DEVICES` pinning across two coexisting CUDA processes has never
+  been exercised. The pool's concurrency is proven only against subprocesses
+  that do not touch a GPU.
+- **`--load-format presharded` works but its benefit is unmeasured.** Server
+  logs confirm one dump followed by two cache hits against one signature
+  directory. At 0.5B the saving is invisible: three trials ran 108.6 / 98.9 /
+  108.4 s, and the two cache hits differ from each other by more than the dump
+  they were meant to skip. A trial is ~108 s, of which ~28 s is the benchmark
+  and most of the rest is server startup that presharding does not touch.
+- **No conclusion about any real deployment.** Both serving knobs sit inside
+  the noise at this model size, and the model was chosen to make the loop cheap
+  to iterate on rather than because tuning it matters.
+
+## 11. State, resume, and reproducibility
 
 - **Trial key** = hash of (normalized point, workload, load, fidelity,
   provenance fingerprint). Deterministic and order-independent.
@@ -484,7 +615,7 @@ defaults to; the outer layer re-checks it end-to-end only when asked.
   hardware, and workload match. Reusing a measurement from before a kernel
   change is the easiest way to produce a confidently wrong recommendation.
 
-## 11. Outputs
+## 12. Outputs
 
 ```
 trials.jsonl        every trial: point, bucket, metrics, status, diagnosis, artifacts
@@ -503,7 +634,7 @@ driver knows whether that is a `ServerArgs` YAML for `server_args_config_parser.
 or a per-shape kernel config. Either way the result is deployable instead of
 something a human retypes.
 
-## 12. CLI
+## 13. CLI
 
 ```bash
 # inner layer: tune every kernel + dispatch heuristic this model uses at tp=8
@@ -526,39 +657,48 @@ command crossed with a model list and a runner list.
 `plan` matters more than it looks: a tuning run is a multi-hour commitment, and
 the user should be able to read what it intends to do before spending that.
 
-## 13. Rollout plan
+## 14. Rollout plan
 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | P0 | Core abstractions + registry + orchestrator loop; bucketed results; server-agnostic driver contract | **done on this branch** |
-| P1 | Mock-executor test proving the loop composes with no GPU; `grid` strategy; JSONL store; triton fused MoE kernel driver + space (shape derivation from model/tp/ep/dtype) + per-shape JSON reporter; `python -m sglang.auto_tune --model-path --tp` front | next |
-| P2 | `.github/workflows/auto-tune.yml` taking a model list and a runner list (H100, H20, H200, B200, GB200); provenance capture | |
+| P1 | Mock-executor test proving the loop composes with no GPU; `grid` strategy; JSONL store; triton fused MoE kernel driver + space (shape derivation from model/tp/ep/dtype) + per-shape JSON reporter; `python -m sglang.autotune moe` front | **done**, measured in §10.1 |
+| P2 | `.github/workflows/auto-tune.yml` taking a model list and a runner list (H100, H20, H200, B200, GB200); provenance capture | provenance done; no workflow yet |
 | P3 | Backend selection drivers: allreduce algorithm, attention backend, MoE runner backend; dispatch-threshold reporters | |
-| P4 | cutlass GEMM via profiler (`Measurement.discovered`); speculative decoding per batch size | |
-| P5 | Serving driver over `benchmark.serving` + `steady_state_serving` with repeats and noise reporting; `server_args` validation space; model-family presets; `coordinate` strategy; `best.yaml` reporter | |
-| P6 | Pool executor for serving trials, multi-fidelity + `asha`, capacity search, `plan` / `validate` / `report` CLI | |
+| P4 | cutlass GEMM via profiler; speculative decoding per batch size | |
+| P5 | Serving driver over `benchmark.serving` + `steady_state_serving` with repeats and noise reporting; `server_args` validation space; model-family presets; `coordinate` strategy; `best.yaml` reporter | driver, repeats, noise reporting and `best.yaml` **done**, measured in §10.2; presets and `coordinate` not started |
+| P6 | Pool executor, multi-fidelity + `asha`, `plan` / `validate` / `report` CLI | pool executor **done** but single-GPU only (§10.5); `asha` not started |
 | P7 | Optional: SQLite store, Optuna strategy, multi-node executor | |
 
-Mapping to the kernel-tuning request this branch answers: item 1 (the command)
-is P1; item 2 (triton fused MoE) is P1; item 3 (CI over models x runners) is
-P2; items 4 and 5 (allreduce, attention, MoE backend selection) are P3; items
-6 and 7 (cutlass, speculative parameters per batch size) are P4.
+**The order was not followed, deliberately.** P5's serving driver was built
+before P2-P4 because the open question worth answering early was whether one
+framework can carry both layers, and that needs the second layer to exist. The
+same reasoning pulled P6's pool executor forward. What this bought is in §10.4;
+the cost is that CI (P2) and the backend-selection drivers (P3) -- which are
+the items the original kernel-tuning request actually asked for -- are still
+untouched.
 
-## 14. Testing
+Mapping to that request: item 1 (the command) is P1; item 2 (triton fused MoE)
+is P1; item 3 (CI over models x runners) is P2; items 4 and 5 (allreduce,
+attention, MoE backend selection) are P3; items 6 and 7 (cutlass, speculative
+parameters per batch size) are P4.
+
+## 15. Testing
 
 - Unit, no GPU: space expansion, feasibility predicates, trial-key stability,
-  constraint evaluation, per-bucket ranking, `discovered` measurements, strategy
-  `ask`/`tell` against a synthetic objective.
+  constraint evaluation, per-bucket ranking, repeat grouping and median
+  ranking, strategy `ask`/`tell` against a synthetic objective.
 - A **mock executor** returning metrics from an analytic function exercises the
-  whole orchestrator — budget, dedup, resume, pruning, ranking, reporting — in
-  CI without hardware. This is the main reason `Executor` is separate from the
-  orchestrator. It lands with P1, alongside the first concrete components.
+  whole orchestrator — budget, dedup, resume, ranking, reporting — in CI
+  without hardware. This is the main reason `Executor` is separate from the
+  orchestrator. A second mock driver runs in the subprocess pool, because every
+  pool bug in §10.4 passed the in-process tests.
 - Integration: triton fused MoE on one small MoE model, single GPU, in the
   nightly perf job; assert the emitted per-shape JSON is loaded by
   `fused_moe_triton_config` and the serving path does not regress. Later, the
   same for `best.yaml` launching.
 
-## 15. Open questions
+## 16. Open questions
 
 1. **Default strategy.** `coordinate` is predictable and explains itself; `asha`
    finds more but is harder to reason about. Proposal: `coordinate` when a
@@ -566,9 +706,13 @@ P2; items 4 and 5 (allreduce, attention, MoE backend selection) are P3; items
 2. **Where do tuned results live?** Per-run artifacts only, or a checked-in
    registry of known-good configs per (model, GPU, workload) that CI refreshes?
    The latter is the higher-value product but needs an ownership story.
-3. **Measurement noise.** `steady_state` removes the ramp-up confound, but close
-   candidates will still be separated by noise. Do we require a significance
-   margin before declaring a winner, or re-measure only the top-k?
+3. **Measurement noise -- answered, see §10.3.** Two runs of one sweep on one
+   GPU chose opposite winners, so a run now measures each point `repeats` times
+   and reports the observed spread beside the margin. What is still open is the
+   policy: repeat every point (simple, linear cost) or only the top-k (cheaper,
+   but the spread is then unknown for the candidates it was used to reject).
+   The current answer is every point, because the k it would trust is exactly
+   the thing being questioned.
 4. **Scope of `ServerArgs` introspection.** How much do we couple to argparse
    internals, given `server_args.py` is large and uses hook-based arg groups
    under `python/sglang/srt/arg_groups/`?
