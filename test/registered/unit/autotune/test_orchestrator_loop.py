@@ -413,6 +413,36 @@ class TestGridStrategy(CustomTestCase):
 
         self.assertEqual(len(second.driver.measured), 0)
 
+    def test_a_grid_records_what_a_rule_rejected(self):
+        """Rejections used to vanish under grid and be recorded under random.
+
+        space.grid() filtered on feasibility itself, so the points its rules
+        removed never reached the orchestrator and were never written down. A
+        rule wrong in the expensive direction -- rejecting candidates that
+        would have run -- left no trace in a grid run at all, which is the
+        strategy a full-space sweep uses.
+        """
+        task = _build_task(self.tmp, strategy=GridStrategy(), rules=[_RejectTp2()])
+        result = tune(task)
+
+        rejected = [
+            m for m in result.measurements if m.status is TrialStatus.INFEASIBLE
+        ]
+        self.assertEqual(len(rejected), 2)
+        self.assertEqual(len(task.driver.measured), 4)
+        # The reason names the rule, so a report can attribute it.
+        self.assertTrue(all(m.message.startswith("no_tp2: ") for m in rejected))
+
+    def test_the_report_attributes_rejections_to_their_rule(self):
+        task = _build_task(self.tmp, strategy=GridStrategy(), rules=[_RejectTp2()])
+        result = tune(task)
+        (path,) = MarkdownReporter().emit(result, self.tmp)
+        text = path.read_text()
+
+        self.assertIn("## Rejected before measuring", text)
+        self.assertIn("2 of 6 points never reached the GPU.", text)
+        self.assertIn("`no_tp2`", text)
+
     def test_a_resumed_grid_runs_only_what_is_left(self):
         first = _build_task(
             self.tmp, strategy=GridStrategy(), budget=Budget(max_trials=2)

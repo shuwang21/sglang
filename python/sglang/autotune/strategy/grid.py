@@ -50,11 +50,9 @@ class GridStrategy(Strategy):
         return self._drained
 
     def estimated_points(self) -> Optional[int]:
-        # Upper bound: grid() drops points a feasibility rule rejects, and
-        # cardinality counts the product before that filter.
         return self.space.cardinality if self.space is not None else None
 
     def describe_plan(self) -> str:
         size = self.estimated_points()
         total = "an unbounded space" if size is None else f"{size} points"
-        return f"grid: every feasible point of {total}, in declaration order"
+        return f"grid: every point of {total}, in declaration order"

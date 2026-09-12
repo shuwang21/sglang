@@ -18,6 +18,7 @@ from typing import Dict, List
 from sglang.autotune.objective import Evaluation, margin
 from sglang.autotune.registry import register_reporter
 from sglang.autotune.task import TuneResult
+from sglang.autotune.types import TrialStatus
 
 __all__ = ["Reporter", "MarkdownReporter"]
 
@@ -108,6 +109,7 @@ class MarkdownReporter(Reporter):
         lines += self._overview(result)
         for bucket in result.buckets:
             lines += self._bucket_section(result, bucket)
+        lines += self._rejections(result)
         lines += self._failures(result)
 
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -152,6 +154,39 @@ class MarkdownReporter(Reporter):
         out = ["| knob | baseline | best |", "|---|---|---|"]
         out += [f"| {name} | {was} | {now} |" for name, (was, now) in changes.items()]
         return out
+
+    def _rejections(self, result: TuneResult) -> List[str]:
+        """What each feasibility rule removed, and one example of why.
+
+        A rejected point is measured by nothing and appears nowhere else, so a
+        rule that is wrong in the expensive direction -- rejecting candidates
+        that would have run -- leaves no trace at all. Counting per rule is what
+        makes that visible: a rule that suddenly takes most of the space is a
+        rule to go and check.
+        """
+        rejected = [
+            m for m in result.measurements if m.status is TrialStatus.INFEASIBLE
+        ]
+        if not rejected:
+            return []
+        total = len({m.trial.point.fingerprint for m in result.measurements})
+        by_rule: Dict[str, List[str]] = {}
+        for m in rejected:
+            for reason in m.message.split("; "):
+                name, _, detail = reason.partition(": ")
+                by_rule.setdefault(name, []).append(detail)
+        out = [
+            "## Rejected before measuring",
+            "",
+            f"{len({m.trial.point.fingerprint for m in rejected})} of {total} "
+            "points never reached the GPU.",
+            "",
+            "| rule | points | example |",
+            "|---|---|---|",
+        ]
+        for name, details in sorted(by_rule.items(), key=lambda kv: -len(kv[1])):
+            out.append(f"| `{name}` | {len(details)} | {details[0]} |")
+        return out + [""]
 
     def _failures(self, result: TuneResult) -> List[str]:
         failed = [m for m in result.measurements if m.failure is not None]

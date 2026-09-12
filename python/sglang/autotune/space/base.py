@@ -279,7 +279,12 @@ class Space(ABC):
         return self.materialize(assignment)
 
     def grid(self) -> Iterator[Point]:
-        """Full Cartesian product, feasible points only.
+        """Full Cartesian product, including points a rule will reject.
+
+        Feasibility is not applied here: the orchestrator screens every point
+        it is handed and records the rejection, so filtering at enumeration
+        would make a grid run the one case where what the rules removed leaves
+        no trace. A rule check costs microseconds against a trial's seconds.
 
         Deliberately a generator: the product is frequently enormous and the
         caller is expected to bound it. Ordering follows knob declaration
@@ -291,9 +296,7 @@ class Space(ABC):
         for combo in itertools.product(*domains):
             base = dict(zip((k.name for k in knobs), combo))
             for assignment in self._with_conditionals(base):
-                point = self.materialize(assignment)
-                if self.feasible(point).ok:
-                    yield point
+                yield self.materialize(assignment)
 
     def _with_conditionals(self, base: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
         """``base`` crossed with the knobs whose predicate it satisfies.
@@ -339,9 +342,15 @@ class Space(ABC):
     # ---- feasibility -----------------------------------------------------
 
     def feasible(self, point: Point) -> Feasibility:
+        # Each reason names the rule that produced it. A rule that rejects far
+        # more than it should is otherwise invisible: the points it removes are
+        # never measured, so nothing in the report is missing -- it is simply
+        # smaller, and no one can tell by how much.
         reasons = [
-            reason
-            for reason in (rule.check(point, self.context) for rule in self._rules)
+            f"{rule.name}: {reason}"
+            for rule, reason in (
+                (rule, rule.check(point, self.context)) for rule in self._rules
+            )
             if reason
         ]
         return Feasibility(not reasons, tuple(reasons))
