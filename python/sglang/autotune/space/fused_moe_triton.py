@@ -19,7 +19,12 @@ from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_tuning impor
     get_configs_compute_bound,
 )
 
-__all__ = ["MoeTileSpace", "BlockKDivisible", "SharedMemoryFits"]
+__all__ = [
+    "MoeTileSpace",
+    "BlockKDivisible",
+    "SharedMemoryFits",
+    "RegisterPressureFits",
+]
 
 
 class BlockKDivisible(FeasibilityRule):
@@ -73,6 +78,42 @@ class SharedMemoryFits(FeasibilityRule):
         return f"needs {needed} B of shared memory, device has {self.limit_bytes} B"
 
 
+class RegisterPressureFits(FeasibilityRule):
+    """Reject tiles whose accumulators alone cannot fit in the register file.
+
+    A GEMM holds one fp32 accumulator per output element for the whole K loop,
+    spread over `num_warps * 32` threads, so a tile needs
+    `BLOCK_M * BLOCK_N / (num_warps * 32)` registers per thread. Past the CUDA
+    limit of 255 the compiler has no choice but to spill to local memory, which
+    is backed by DRAM: the one tile in the L4 sample that did this ran 43-53x
+    slower than the best at every batch size, at 5 GB/s of a 300 GB/s card.
+
+    Unlike the shared-memory rule this is arithmetic against a hardware
+    constant rather than a fit, but it is deliberately only the guaranteed
+    case. A tile just under the limit leaves nothing for addresses and staged
+    operands and may still spill; those are not rejected here, and in the L4
+    sample none of them lost more than 1.6x.
+    """
+
+    name = "register_pressure_fits"
+
+    #: CUDA's architectural cap on registers per thread, unchanged since sm_50.
+    MAX_REGISTERS_PER_THREAD = 255
+
+    def accumulators_per_thread(self, point: Point) -> int:
+        threads = point.get("num_warps") * 32
+        return point.get("BLOCK_SIZE_M") * point.get("BLOCK_SIZE_N") // threads
+
+    def check(self, point: Point, context: Mapping[str, Any]) -> Optional[str]:
+        needed = self.accumulators_per_thread(point)
+        if needed <= self.MAX_REGISTERS_PER_THREAD:
+            return None
+        return (
+            f"{needed} accumulator registers per thread exceeds the "
+            f"{self.MAX_REGISTERS_PER_THREAD} a thread can hold"
+        )
+
+
 @register_space("fused_moe_triton")
 class MoeTileSpace(Space):
     """Tile knobs, taken apart from the tuner's own candidate list.
@@ -95,6 +136,7 @@ class MoeTileSpace(Space):
         rules: List[FeasibilityRule] = []
         if block_shape is not None and all(block_shape):
             rules.append(BlockKDivisible(block_k=block_shape[1]))
+        rules.append(RegisterPressureFits())
         smem_limit = _get_cuda_shared_memory_per_block_optin()
         # Both conditions are the caller's to establish: the device limit, and
         # an element size the formula can use. Skipping the rule costs a

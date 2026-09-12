@@ -11,7 +11,10 @@ import torch
 from sglang.autotune.driver.fused_moe_triton import MoeShape
 from sglang.autotune.space.base import Categorical, Conditional, Knob
 from sglang.autotune.space.fused_moe_triton import BlockKDivisible, SharedMemoryFits
-from sglang.autotune.space.fused_moe_triton import MoeTileSpace
+from sglang.autotune.space.fused_moe_triton import (
+    MoeTileSpace,
+    RegisterPressureFits,
+)
 from sglang.autotune.space.simple import SimpleSpace
 from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe_triton_config import (
     _get_cuda_shared_memory_per_block_optin,
@@ -64,6 +67,36 @@ def _tile(block_m: int, block_n: int, block_k: int, num_stages: int) -> Point:
             "num_stages": num_stages,
         }
     )
+
+
+class TestRegisterPressureFits(CustomTestCase):
+    """Accumulators that cannot fit the register file.
+
+    The one tile in the L4 sample over the limit ran 43-53x slower than the
+    best at every batch size -- 5 GB/s of a 300 GB/s card -- because the
+    spilled accumulators live in DRAM. It is the only config in the sample
+    that lost more than 1.6x.
+    """
+
+    def _at(self, block_m, block_n, warps):
+        point = _tile(block_m, block_n, 64, 2).merged(num_warps=warps)
+        return RegisterPressureFits().check(point, {})
+
+    def test_the_tile_that_cost_66_percent_of_a_run_is_rejected(self):
+        reason = self._at(256, 128, 4)
+        self.assertIsNotNone(reason)
+        self.assertIn("256 accumulator registers", reason)
+
+    def test_the_winners_are_nowhere_near_the_limit(self):
+        # L4 winners at batch 1/64 and at batch 1024: 8 and 32 per thread.
+        self.assertIsNone(self._at(32, 32, 4))
+        self.assertIsNone(self._at(128, 64, 8))
+
+    def test_the_boundary_is_the_hardware_limit_not_a_margin(self):
+        """Only the guaranteed case; a tile just under it is left alone."""
+        self.assertIsNone(self._at(128, 64, 4))  # 64 per thread
+        self.assertIsNone(self._at(256, 64, 4))  # 128, still fits
+        self.assertIsNotNone(self._at(256, 256, 4))  # 512, cannot
 
 
 class TestSharedMemoryRuleAdmission(CustomTestCase):
