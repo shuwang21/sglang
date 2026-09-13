@@ -373,6 +373,62 @@ class TestGridStrategy(CustomTestCase):
         # Only the gap is remeasured, not the whole space over again.
         self.assertEqual(len(second.driver.measured), 10)
 
+    def test_the_report_shows_the_median_it_ranked_on(self):
+        """The table printed each point's first attempt, not its median.
+
+        Ranking used the median, so the displayed column could disagree with
+        the order it sat in: an H200 report listed #9 slower than #10.
+        """
+        calls: dict = {}
+
+        def first_attempt_is_the_outlier(point, workload):
+            key = point.fingerprint
+            n = calls.get(key, 0)
+            calls[key] = n + 1
+            base = 100.0 * point.get("tp_size") + (
+                20 if point.get("backend") == "fa3" else 0
+            )
+            # attempt 0 is wildly high; the median of three is `base`
+            value = base * 10 if n == 0 else base
+            return {"output_throughput": value, "p99_ttft_ms": 1.0}
+
+        task = _build_task(
+            self.tmp, metric_fn=first_attempt_is_the_outlier, strategy=GridStrategy()
+        )
+        task.repeats = 3
+        result = tune(task)
+
+        best = result.ranking[0]
+        self.assertEqual(best.measurement.metrics["output_throughput"], 420.0)
+        (path,) = MarkdownReporter().emit(result, self.tmp)
+        self.assertIn("| 1 | `backend=fa3 tp_size=4` | 420 |", path.read_text())
+
+    def test_rejections_and_failures_are_counted_per_point(self):
+        """Counts were per trial, so repeats multiplied them.
+
+        A report with 7 rejected points said 68, and one deterministic OOM got
+        a row for every batch size and attempt.
+        """
+
+        def fail_tp1(point, workload):
+            if point.get("tp_size") == 1:
+                return None
+            return _throughput(point, workload)
+
+        task = _build_task(
+            self.tmp, metric_fn=fail_tp1, strategy=GridStrategy(), rules=[_RejectTp2()]
+        )
+        task.repeats = 3
+        result = tune(task)
+        (path,) = MarkdownReporter().emit(result, self.tmp)
+        text = path.read_text()
+
+        self.assertIn("| `no_tp2` | 2 |", text)
+        failures = text[text.index("## Failures") :].splitlines()
+        rows = [line for line in failures if line.startswith("| `")]
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all("| 3 |" in row for row in rows))
+
     def test_estimated_trials_counts_every_repeat(self):
         """A plan that understates the cost threefold is worse than none."""
         task = _build_task(self.tmp, strategy=GridStrategy())

@@ -170,11 +170,16 @@ class MarkdownReporter(Reporter):
         if not rejected:
             return []
         total = len({m.trial.point.fingerprint for m in result.measurements})
-        by_rule: Dict[str, List[str]] = {}
+        # Per point, not per trial: a rejected point is re-rejected once per
+        # workload, load and repeat, and counting those makes a rule look
+        # several times more aggressive than it is.
+        by_rule: Dict[str, Dict[str, str]] = {}
         for m in rejected:
             for reason in m.message.split("; "):
                 name, _, detail = reason.partition(": ")
-                by_rule.setdefault(name, []).append(detail)
+                by_rule.setdefault(name, {}).setdefault(
+                    m.trial.point.fingerprint, detail
+                )
         out = [
             "## Rejected before measuring",
             "",
@@ -185,15 +190,28 @@ class MarkdownReporter(Reporter):
             "|---|---|---|",
         ]
         for name, details in sorted(by_rule.items(), key=lambda kv: -len(kv[1])):
-            out.append(f"| `{name}` | {len(details)} | {details[0]} |")
+            example = next(iter(details.values()))
+            out.append(f"| `{name}` | {len(details)} | {example} |")
         return out + [""]
 
     def _failures(self, result: TuneResult) -> List[str]:
         failed = [m for m in result.measurements if m.failure is not None]
         if not failed:
             return []
-        out = ["## Failures", "", "| point | kind | detail |", "|---|---|---|"]
-        out += [
-            f"| `{m.trial.point}` | {m.failure.value} | {m.message} |" for m in failed
+        # A deterministic failure repeats for every batch size and attempt;
+        # one row per point and kind, with how often, keeps the table readable.
+        grouped: Dict[tuple, List] = {}
+        for m in failed:
+            grouped.setdefault((m.trial.point.fingerprint, m.failure), []).append(m)
+        out = [
+            "## Failures",
+            "",
+            "| point | kind | trials | detail |",
+            "|---|---|---|---|",
         ]
+        for (_, kind), ms in grouped.items():
+            first = ms[0]
+            out.append(
+                f"| `{first.trial.point}` | {kind.value} | {len(ms)} | {first.message} |"
+            )
         return out + [""]

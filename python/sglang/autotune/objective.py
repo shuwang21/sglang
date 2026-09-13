@@ -190,8 +190,9 @@ class Evaluation:
     """An objective + constraint verdict on one point.
 
     ``measurements`` holds every measurement that contributed (one per
-    workload, load, and repeat); ``measurement`` is the first, for callers that
-    only need a representative. A point is feasible only if all of them are.
+    workload, load, and repeat). ``measurement`` is the median repeat of the
+    first group -- the one ranking actually used -- for callers that need a
+    single representative. A point is feasible only if all of them are.
     """
 
     measurements: Tuple[Measurement, ...]
@@ -201,10 +202,15 @@ class Evaluation:
     #: Widest relative spread of the primary component across the repeats of
     #: any one group, or None when nothing was measured twice.
     spread: Optional[float] = None
+    #: One median measurement per (workload, load) group, in group order.
+    representatives: Tuple[Measurement, ...] = ()
 
     @property
     def measurement(self) -> Measurement:
-        return self.measurements[0]
+        # Not measurements[0]: with repeats that is whichever attempt was
+        # recorded first, so a report showing it disagrees with the order the
+        # points were ranked in.
+        return self.representatives[0] if self.representatives else self.measurements[0]
 
     @property
     def point(self) -> Point:
@@ -294,6 +300,7 @@ def evaluate_point(
         feasible=feasible,
         violations=violations,
         components=objective.aggregate(representatives) if feasible else None,
+        representatives=tuple(representatives),
         spread=max(spreads) if spreads else None,
     )
 
