@@ -19,6 +19,7 @@ from sglang.srt.layers.layer_boundary.residual import batch as residual_batch
 from sglang.srt.layers.layernorm import RMSNorm
 from sglang.srt.layers.linear import QKVParallelLinear, RowParallelLinear
 from sglang.srt.layers.logits_processor import LogitsProcessor
+from sglang.srt.layers.looped import check_loop_config_at_init, run_decoder_layers
 from sglang.srt.layers.pooler import Pooler, PoolingType
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
 from sglang.srt.layers.quantization.fp8_activation import (
@@ -736,6 +737,7 @@ class Qwen3Model(Qwen2Model):
             decoder_layer_type=Qwen3DecoderLayer,
             alt_stream=alt_stream,
         )
+        check_loop_config_at_init(config.num_hidden_layers)
 
     def forward(
         self,
@@ -755,15 +757,23 @@ class Qwen3Model(Qwen2Model):
                 pp_proxy_tensors, forward_batch
             )
         aux_hidden_states = AuxHiddenStateList()
-        for i in range(self.start_layer, self.end_layer):
-            hidden_states = self.layers[i](
+        hidden_states = run_decoder_layers(
+            start_layer=self.start_layer,
+            end_layer=self.end_layer,
+            hidden_states=hidden_states,
+            forward_batch=forward_batch,
+            num_tokens=positions.shape[-1],
+            run_layer=lambda i, h: self.layers[i](
                 positions,
-                hidden_states,
+                h,
                 forward_batch,
                 capture_output=aux_hidden_states.capture
                 if i in self.layers_to_capture
                 else None,
-            )
+            ),
+            attn_of=lambda i: self.layers[i].self_attn.attn,
+            capture_layers=self.layers_to_capture,
+        )
         if not self.pp_group.is_last_rank:
             return residual_batch.to_pp(hidden_states, forward_batch)
         hidden_states = residual_batch.final_norm(

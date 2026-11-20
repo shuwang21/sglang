@@ -159,6 +159,17 @@ class Model(msgspec.Struct):
         str,
         "A dictionary in JSON string format used to override default model configurations.",
     ] = "{}"
+    loop_config: A[
+        str,
+        Arg(
+            help=(
+                "Training-free looped transformer configuration as a JSON object "
+                "(Qwen3 dense only, TP=1). Example: "
+                '\'{"start":15,"end":19,"k":3,"mode":"block","strategy":"euler",'
+                '"cache_strategy":"first","decode_mode":"full"}\'.'
+            )
+        ),
+    ] = "{}"
 
     # -------------------------------------------------------------------------
     # Quantization and data type
