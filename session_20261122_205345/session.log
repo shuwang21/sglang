@@ -135,3 +135,32 @@ tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: f
 [loop] 2400/12032  elapsed 42.4 min  eta 170.3 min  56.5 req/min  1344 out tok/s
 [baseline] 3250/12032  elapsed 42.9 min  eta 116.0 min  75.7 req/min  1517 out tok/s
 [loop] 2450/12032  elapsed 43.3 min  eta 169.3 min  56.6 req/min  1347 out tok/s
+[baseline] 3300/12032  elapsed 43.7 min  eta 115.6 min  75.6 req/min  1513 out tok/s
+[loop] 2500/12032  elapsed 44.4 min  eta 169.2 min  56.3 req/min  1347 out tok/s
+[baseline] 3350/12032  elapsed 44.4 min  eta 115.0 min  75.5 req/min  1512 out tok/s
+[baseline] 3400/12032  elapsed 45.0 min  eta 114.2 min  75.6 req/min  1512 out tok/s
+[loop] 2550/12032  elapsed 45.2 min  eta 167.9 min  56.5 req/min  1354 out tok/s
+[baseline] 3450/12032  elapsed 45.8 min  eta 113.9 min  75.4 req/min  1516 out tok/s
+[loop] 2600/12032  elapsed 46.1 min  eta 167.3 min  56.4 req/min  1357 out tok/s
+[baseline] 3500/12032  elapsed 46.5 min  eta 113.4 min  75.3 req/min  1511 out tok/s
+[loop] 2650/12032  elapsed 47.1 min  eta 166.8 min  56.3 req/min  1361 out tok/s
+[baseline] 3550/12032  elapsed 47.2 min  eta 112.9 min  75.1 req/min  1517 out tok/s
+[loop] 2700/12032  elapsed 48.0 min  eta 165.9 min  56.2 req/min  1361 out tok/s
+[baseline] 3600/12032  elapsed 48.0 min  eta 112.5 min  74.9 req/min  1518 out tok/s
+[baseline] 3650/12032  elapsed 48.8 min  eta 112.0 min  74.8 req/min  1517 out tok/s
+[loop] 2750/12032  elapsed 48.9 min  eta 164.9 min  56.3 req/min  1361 out tok/s
+[baseline] 3700/12032  elapsed 49.4 min  eta 111.2 min  74.9 req/min  1522 out tok/s
+[loop] 2800/12032  elapsed 49.6 min  eta 163.5 min  56.4 req/min  1366 out tok/s
+[baseline] 3750/12032  elapsed 50.1 min  eta 110.6 min  74.9 req/min  1518 out tok/s
+[21:45:24 +51m] report: reports/mmlu_pro_medium_full.md
+tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: file changed as we read it
+[21:45:25 +51m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345.tar.gz (8.1M)
+[loop] 2850/12032  elapsed 50.6 min  eta 162.9 min  56.4 req/min  1371 out tok/s
+[baseline] 3800/12032  elapsed 50.7 min  eta 109.9 min  74.9 req/min  1522 out tok/s
+[loop] 2900/12032  elapsed 51.3 min  eta 161.5 min  56.5 req/min  1374 out tok/s
+[baseline] 3850/12032  elapsed 51.4 min  eta 109.1 min  75.0 req/min  1522 out tok/s
+[baseline] 3900/12032  elapsed 52.1 min  eta 108.7 min  74.8 req/min  1516 out tok/s
+[loop] 2950/12032  elapsed 52.4 min  eta 161.3 min  56.3 req/min  1368 out tok/s
+[baseline] 3950/12032  elapsed 52.8 min  eta 108.1 min  74.8 req/min  1515 out tok/s
+[loop] 3000/12032  elapsed 53.5 min  eta 160.9 min  56.1 req/min  1359 out tok/s
+[baseline] 4000/12032  elapsed 53.6 min  eta 107.6 min  74.7 req/min  1519 out tok/s
