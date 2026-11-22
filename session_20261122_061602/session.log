@@ -1,0 +1,51 @@
+[06:16:02 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602, 1 tasks
+[06:16:08 +0m] preflight dataset: mmlu_pro_medium_l500
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}: 500 questions ready
+[06:16:10 +0m] === mmlu_pro_medium_l500 / baseline ===
+[06:16:10 +0m] starting baseline server -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602/servers/mmlu_pro_medium_l500_baseline.log
+[06:17:16 +1m] ERROR: baseline server exited during startup; last lines of /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602/servers/mmlu_pro_medium_l500_baseline.log:
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/ops/attention/rope.py", line 223, in apply_rope_with_cos_sin_cache_inplace
+    apply_rope_inplace(
+  File "/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/torch/_ops.py", line 1279, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/ops/attention/rope.py", line 140, in apply_rope_inplace
+    module = _jit_fused_rope_module(is_neox, rope_dim, k.dtype, q.dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/jit/utils/common.py", line 38, in wrapper
+    result_map[key] = fn(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/ops/attention/rope.py", line 36, in _jit_fused_rope_module
+    return load_jit(
+           ^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/jit/utils/compile/loader.py", line 178, in load_jit
+    library = ninja.build(spec=spec, build_dir=staging, build_file=build_file)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/kernels/jit/utils/compile/ninja.py", line 169, in build
+    raise RuntimeError(
+RuntimeError: Failed to build JIT module sgl_kernel_jit_fused_rope_true_64_true_bf16_t_bf16_t in /data/shuwang21/home/.cache/sglang/jit/sm90a/sgl_kernel_jit_fused_rope_true_64_true_bf16_t_bf16_t/build-4aaf7a60b9c25349/.staging-633c01fc07c14e5b92129fe0fe950ff7
+stdout:
+[1/2] /data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/nvidia/cu13/bin/nvcc -MD -MF "cuda_0.o.d" -Xcompiler -fPIC -gencode=arch=compute_90a,code=sm_90a -DSGL_CUDA_ARCH=900 -std=c++20 -O3 --expt-relaxed-constexpr -I/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/tvm_ffi/include -I/data/shuwang21/home/sglang-looped/python/sglang/kernels/jit/include -c "cuda.cu" -o "cuda_0.o"
+[2/2] c++ cuda_0.o -shared -L/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/tvm_ffi/lib -ltvm_ffi -L/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/nvidia/cu13/lib64 -lcudart -o "sgl_kernel_jit_fused_rope_true_64_true_bf16_t_bf16_t.so"
+FAILED: [code=1] sgl_kernel_jit_fused_rope_true_64_true_bf16_t_bf16_t.so 
+c++ cuda_0.o -shared -L/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/tvm_ffi/lib -ltvm_ffi -L/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/nvidia/cu13/lib64 -lcudart -o "sgl_kernel_jit_fused_rope_true_64_true_bf16_t_bf16_t.so"
+/usr/bin/ld: cannot find -lcudart: No such file or directory
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+stderr:
+
+
+[2026-11-22 06:17:11] SIGQUIT received. signum=None, frame=None. It usually means one child failed.
+[2026-11-22 06:17:11] Sleeping 5 seconds before crash diagnostics to let GPU activity settle.
+[rank0]:[W1122 06:17:12.846773819 ProcessGroupNCCL.cpp:1624] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+[2026-11-22 06:17:16] No live scheduler processes found; skipping py-spy and CUDA coredump.
+[2026-11-22 06:17:16] kill_process_tree called: parent_pid=219690, include_parent=True, pid=219690
+[06:17:16 +1m] all tasks done (failed=1)
+[06:17:16 +1m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602.tar.gz (16K)
+[06:17:16 +1m] exit code 1; session dir /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602
+[06:17:16 +1m] COPY THIS FILE OFF THE NODE: /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_061602.tar.gz
