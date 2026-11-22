@@ -1,0 +1,19 @@
+[20:53:45 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345, 1 task(s); baseline on GPUs 0, loop on GPUs 1, in parallel
+[20:53:52 +0m] preflight dataset: mmlu_pro_medium_full
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}: 12032 questions ready
+[20:53:54 +0m] === mmlu_pro_medium_full: baseline + loop in parallel ===
+[20:53:54 +0m] starting baseline server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345/servers/mmlu_pro_medium_full_baseline_gpu0.log
+[20:53:54 +0m] starting loop server on GPU 1, port 30001 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345/servers/mmlu_pro_medium_full_loop_gpu1.log
+[20:55:15 +1m] 2 server(s) ready after 75s
+[20:55:15 +1m] eval mmlu_pro_medium_full / baseline on 1 server(s)
+[20:55:15 +1m] eval mmlu_pro_medium_full / loop on 1 server(s)
+[baseline] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[loop] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[baseline] 12032 questions x 1 seeds; 0 done, 12032 to run; 1 server(s) x concurrency 64
+[loop] 12032 questions x 1 seeds; 0 done, 12032 to run; 1 server(s) x concurrency 64
+[baseline] 50/12032  elapsed 0.8 min  eta 188.4 min  63.6 req/min  440 out tok/s
+[loop] 50/12032  elapsed 0.9 min  eta 207.1 min  57.9 req/min  434 out tok/s
+[baseline] 100/12032  elapsed 1.5 min  eta 177.0 min  67.4 req/min  625 out tok/s
+[loop] 100/12032  elapsed 1.7 min  eta 202.2 min  59.0 req/min  593 out tok/s
+[baseline] 150/12032  elapsed 2.1 min  eta 168.4 min  70.5 req/min  832 out tok/s

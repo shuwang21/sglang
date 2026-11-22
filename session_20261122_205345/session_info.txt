@@ -1,0 +1,15 @@
+date: 2026-11-22T20:53:45Z
+host: host-85-234-79-221
+git_head: d88319c9546e2c0551f4c60e94a4e94b6ed0a2b8
+git_branch: shuwang/looped
+git_status:
+?? results/
+model: openai/gpt-oss-20b
+loop_config: {"start":12,"end":15,"k":2,"mode":"block","strategy":"block_anchored","anchor_beta":0.35,"cache_strategy":"first","decode_mode":"full"}
+SGLANG_ENABLE_JIT_DEEPGEMM=0
+GPUS=0,1 (parallel=1; baseline 0; loop 1)
+CONCURRENCY=64 per server; TIME_BUDGET_MIN=200
+HF_HOME=/data/shuwang21/home/hf_cache
+tasks:
+  mmlu_pro_medium_full|--dataset mmlu_pro --reasoning-effort medium --seeds 0
+python: Python 3.12.16
