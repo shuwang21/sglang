@@ -1,0 +1,23 @@
+{
+  "dataset": "mmlu_pro",
+  "source": {
+    "path": "TIGER-Lab/MMLU-Pro",
+    "config": null,
+    "split": "test"
+  },
+  "limit": null,
+  "per_category": null,
+  "num_questions": 12032,
+  "seeds": [
+    0
+  ],
+  "model": "openai/gpt-oss-20b",
+  "base_url": [
+    "http://127.0.0.1:30000"
+  ],
+  "reasoning_effort": "medium",
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "max_tokens": 16384,
+  "prompt_template": "Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of {letters}. Think step by step before answering.\n\n{question}\n\n{options}"
+}
