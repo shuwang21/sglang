@@ -1,0 +1,151 @@
+{
+  "baseline": {
+    "per_seed": {
+      "0": 0.7757575757575758
+    },
+    "mean": 0.7757575757575758,
+    "std": 0.0,
+    "n_rows": 660,
+    "errors": 0,
+    "completion_tokens": 1127.15,
+    "reasoning_chars": 3291.2909090909093,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.0,
+    "extraction_failure_rate": 0.016666666666666666
+  },
+  "loop": {
+    "per_seed": {
+      "0": 0.7862745098039216
+    },
+    "mean": 0.7862745098039216,
+    "std": 0.0,
+    "n_rows": 510,
+    "errors": 0,
+    "completion_tokens": 1265.5313725490196,
+    "reasoning_chars": 3662.676470588235,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.0,
+    "extraction_failure_rate": 0.01568627450980392
+  },
+  "sign_test": {
+    "positive": 30,
+    "negative": 30,
+    "ties": 447,
+    "p": 1.0
+  },
+  "wilcoxon": {
+    "n": 60,
+    "statistic": 915.0,
+    "p": 1.0,
+    "method": "scipy"
+  },
+  "mcnemar": {
+    "base_only": 30,
+    "loop_only": 30,
+    "p": 1.0,
+    "seed": 0,
+    "n": 507
+  },
+  "paired_questions": 507,
+  "per_category": {
+    "biology": {
+      "n": 27,
+      "baseline": 0.8888888888888888,
+      "loop": 0.8518518518518519,
+      "delta": -0.03703703703703698,
+      "sign_p": 1.0
+    },
+    "business": {
+      "n": 27,
+      "baseline": 0.9259259259259259,
+      "loop": 0.8518518518518519,
+      "delta": -0.07407407407407407,
+      "sign_p": 0.5
+    },
+    "chemistry": {
+      "n": 40,
+      "baseline": 0.95,
+      "loop": 0.95,
+      "delta": 0.0,
+      "sign_p": 1.0
+    },
+    "computer science": {
+      "n": 24,
+      "baseline": 0.8333333333333334,
+      "loop": 0.875,
+      "delta": 0.04166666666666663,
+      "sign_p": 1.0
+    },
+    "economics": {
+      "n": 40,
+      "baseline": 0.925,
+      "loop": 0.975,
+      "delta": 0.04999999999999993,
+      "sign_p": 0.5
+    },
+    "engineering": {
+      "n": 50,
+      "baseline": 0.64,
+      "loop": 0.62,
+      "delta": -0.020000000000000018,
+      "sign_p": 1.0
+    },
+    "health": {
+      "n": 36,
+      "baseline": 0.75,
+      "loop": 0.75,
+      "delta": 0.0,
+      "sign_p": 1.0
+    },
+    "history": {
+      "n": 10,
+      "baseline": 0.6,
+      "loop": 0.6,
+      "delta": 0.0,
+      "sign_p": 1.0
+    },
+    "law": {
+      "n": 41,
+      "baseline": 0.36585365853658536,
+      "loop": 0.4146341463414634,
+      "delta": 0.04878048780487804,
+      "sign_p": 0.75390625
+    },
+    "math": {
+      "n": 52,
+      "baseline": 0.9423076923076923,
+      "loop": 0.9423076923076923,
+      "delta": 0.0,
+      "sign_p": 1.0
+    },
+    "other": {
+      "n": 41,
+      "baseline": 0.7317073170731707,
+      "loop": 0.6829268292682927,
+      "delta": -0.04878048780487798,
+      "sign_p": 0.7265625
+    },
+    "philosophy": {
+      "n": 28,
+      "baseline": 0.75,
+      "loop": 0.7857142857142857,
+      "delta": 0.0357142857142857,
+      "sign_p": 1.0
+    },
+    "physics": {
+      "n": 62,
+      "baseline": 0.8225806451612904,
+      "loop": 0.8548387096774194,
+      "delta": 0.032258064516129004,
+      "sign_p": 0.7265625
+    },
+    "psychology": {
+      "n": 29,
+      "baseline": 0.8620689655172413,
+      "loop": 0.7931034482758621,
+      "delta": -0.06896551724137923,
+      "sign_p": 0.625
+    }
+  },
+  "mismatched_settings": []
+}

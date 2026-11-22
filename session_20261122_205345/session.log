@@ -17,3 +17,30 @@ mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}: 12032 
 [baseline] 100/12032  elapsed 1.5 min  eta 177.0 min  67.4 req/min  625 out tok/s
 [loop] 100/12032  elapsed 1.7 min  eta 202.2 min  59.0 req/min  593 out tok/s
 [baseline] 150/12032  elapsed 2.1 min  eta 168.4 min  70.5 req/min  832 out tok/s
+[loop] 150/12032  elapsed 2.7 min  eta 210.4 min  56.5 req/min  718 out tok/s
+[baseline] 200/12032  elapsed 3.0 min  eta 179.7 min  65.8 req/min  865 out tok/s
+[loop] 200/12032  elapsed 3.6 min  eta 214.2 min  55.2 req/min  831 out tok/s
+[baseline] 250/12032  elapsed 3.7 min  eta 175.9 min  67.0 req/min  936 out tok/s
+[loop] 250/12032  elapsed 4.4 min  eta 208.3 min  56.6 req/min  894 out tok/s
+[baseline] 300/12032  elapsed 4.7 min  eta 185.4 min  63.3 req/min  999 out tok/s
+[baseline] 350/12032  elapsed 5.6 min  eta 185.4 min  63.0 req/min  1063 out tok/s
+[loop] 300/12032  elapsed 5.6 min  eta 218.2 min  53.8 req/min  890 out tok/s
+[baseline] 400/12032  elapsed 6.2 min  eta 179.6 min  64.8 req/min  1117 out tok/s
+[loop] 350/12032  elapsed 6.7 min  eta 224.7 min  52.0 req/min  908 out tok/s
+[baseline] 450/12032  elapsed 6.9 min  eta 176.6 min  65.6 req/min  1146 out tok/s
+[baseline] 500/12032  elapsed 7.5 min  eta 173.7 min  66.4 req/min  1172 out tok/s
+[loop] 400/12032  elapsed 7.7 min  eta 224.0 min  51.9 req/min  948 out tok/s
+[baseline] 550/12032  elapsed 8.2 min  eta 171.4 min  67.0 req/min  1155 out tok/s
+[loop] 450/12032  elapsed 8.8 min  eta 226.3 min  51.2 req/min  1000 out tok/s
+[baseline] 600/12032  elapsed 9.0 min  eta 171.3 min  66.7 req/min  1225 out tok/s
+[loop] 500/12032  elapsed 9.7 min  eta 224.5 min  51.4 req/min  1076 out tok/s
+[baseline] 650/12032  elapsed 9.9 min  eta 172.8 min  65.9 req/min  1235 out tok/s
+[21:05:16 +11m] report: reports/mmlu_pro_medium_full.md
+[21:05:16 +11m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345.tar.gz (1.7M)
+[baseline] 700/12032  elapsed 10.5 min  eta 170.3 min  66.5 req/min  1233 out tok/s
+[loop] 550/12032  elapsed 10.6 min  eta 221.4 min  51.9 req/min  1110 out tok/s
+[baseline] 750/12032  elapsed 11.2 min  eta 168.4 min  67.0 req/min  1274 out tok/s
+[loop] 600/12032  elapsed 11.6 min  eta 221.7 min  51.6 req/min  1081 out tok/s
+[baseline] 800/12032  elapsed 11.9 min  eta 166.8 min  67.3 req/min  1277 out tok/s
+[baseline] 850/12032  elapsed 12.5 min  eta 164.5 min  68.0 req/min  1301 out tok/s
+[loop] 650/12032  elapsed 12.5 min  eta 219.1 min  51.9 req/min  1115 out tok/s
