@@ -1,0 +1,53 @@
+{
+  "baseline": {
+    "per_seed": {
+      "0": 0.826,
+      "1": 0.82
+    },
+    "mean": 0.823,
+    "std": 0.004242640687119289,
+    "n_rows": 1000,
+    "errors": 0,
+    "completion_tokens": 1323.51,
+    "reasoning_chars": 3624.507,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.0,
+    "extraction_failure_rate": 0.012
+  },
+  "loop": {
+    "per_seed": {
+      "0": 0.848,
+      "1": 0.816
+    },
+    "mean": 0.832,
+    "std": 0.02262741699796954,
+    "n_rows": 1000,
+    "errors": 0,
+    "completion_tokens": 1629.915,
+    "reasoning_chars": 4572.775,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.004,
+    "extraction_failure_rate": 0.02
+  },
+  "sign_test": {
+    "positive": 48,
+    "negative": 40,
+    "ties": 412,
+    "p": 0.45574127943791326
+  },
+  "wilcoxon": {
+    "n": 88,
+    "statistic": 1772.0,
+    "p": 0.38931910116359236,
+    "method": "scipy"
+  },
+  "mcnemar": {
+    "base_only": 22,
+    "loop_only": 33,
+    "p": 0.17700136477035816,
+    "seed": 0,
+    "n": 500
+  },
+  "paired_questions": 500,
+  "mismatched_settings": []
+}

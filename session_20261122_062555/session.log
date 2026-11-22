@@ -1,0 +1,101 @@
+[06:25:55 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555, 1 tasks
+[06:26:00 +0m] preflight dataset: mmlu_pro_medium_l500
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}: 500 questions ready
+[06:26:02 +0m] === mmlu_pro_medium_l500 / baseline ===
+[06:26:02 +0m] starting baseline server -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555/servers/mmlu_pro_medium_l500_baseline.log
+[06:27:04 +1m] baseline server ready after 60s
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+500 questions x 2 seeds; 0 done, 1000 to run
+50/1000  elapsed 1.2 min  eta 22.2 min
+100/1000  elapsed 2.6 min  eta 23.1 min
+150/1000  elapsed 3.5 min  eta 20.0 min
+200/1000  elapsed 4.6 min  eta 18.4 min
+250/1000  elapsed 6.1 min  eta 18.2 min
+300/1000  elapsed 7.2 min  eta 16.8 min
+350/1000  elapsed 8.6 min  eta 15.9 min
+400/1000  elapsed 10.1 min  eta 15.1 min
+450/1000  elapsed 11.3 min  eta 13.9 min
+500/1000  elapsed 12.6 min  eta 12.6 min
+550/1000  elapsed 13.7 min  eta 11.2 min
+600/1000  elapsed 15.2 min  eta 10.1 min
+650/1000  elapsed 16.5 min  eta 8.9 min
+700/1000  elapsed 17.6 min  eta 7.5 min
+750/1000  elapsed 18.7 min  eta 6.2 min
+800/1000  elapsed 19.7 min  eta 4.9 min
+850/1000  elapsed 21.1 min  eta 3.7 min
+900/1000  elapsed 22.8 min  eta 2.5 min
+950/1000  elapsed 24.0 min  eta 1.3 min
+1000/1000  elapsed 30.3 min  eta 0.0 min
+[06:57:26 +31m] mmlu_pro_medium_l500 / baseline took 30 min
+[06:57:26 +31m] stopping server (pid 248639)
+[06:57:32 +31m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555.tar.gz (1.4M)
+[06:57:32 +31m] === mmlu_pro_medium_l500 / loop ===
+[06:57:32 +31m] starting loop server -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555/servers/mmlu_pro_medium_l500_loop.log
+[06:58:14 +32m] loop server ready after 40s
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+500 questions x 2 seeds; 0 done, 1000 to run
+50/1000  elapsed 1.1 min  eta 21.7 min
+100/1000  elapsed 2.7 min  eta 24.7 min
+150/1000  elapsed 4.5 min  eta 25.7 min
+200/1000  elapsed 6.0 min  eta 23.9 min
+250/1000  elapsed 7.9 min  eta 23.7 min
+300/1000  elapsed 9.6 min  eta 22.3 min
+350/1000  elapsed 11.3 min  eta 21.1 min
+400/1000  elapsed 13.2 min  eta 19.8 min
+450/1000  elapsed 15.1 min  eta 18.5 min
+500/1000  elapsed 16.7 min  eta 16.7 min
+550/1000  elapsed 18.2 min  eta 14.9 min
+600/1000  elapsed 19.9 min  eta 13.3 min
+650/1000  elapsed 21.6 min  eta 11.6 min
+700/1000  elapsed 22.9 min  eta 9.8 min
+750/1000  elapsed 24.4 min  eta 8.1 min
+800/1000  elapsed 25.7 min  eta 6.4 min
+850/1000  elapsed 27.5 min  eta 4.9 min
+900/1000  elapsed 30.6 min  eta 3.4 min
+950/1000  elapsed 32.8 min  eta 1.7 min
+1000/1000  elapsed 39.2 min  eta 0.0 min
+[07:37:25 +71m] mmlu_pro_medium_l500 / loop took 39 min
+[07:37:25 +71m] stopping server (pid 309115)
+benchmark/looped_transformer/run_session.sh: line 130: 309115 Killed                  setsid "${cmd[@]}" > "$logfile" 2>&1 < /dev/null
+[07:37:31 +71m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555.tar.gz (3.1M)
+[07:37:32 +71m] report: reports/mmlu_pro_medium_l500.md
+[07:37:32 +71m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555.tar.gz (3.1M)
+[07:37:32 +71m] all tasks done (failed=0)
+# gpt-oss eval: mmlu_pro_medium_l500
+
+- baseline: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555/runs/mmlu_pro_medium_l500/baseline`
+- loop: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555/runs/mmlu_pro_medium_l500/loop`
+- dataset: mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}, limit=500, reasoning_effort=medium, temperature=1.0, top_p=1.0, max_tokens=16384
+- seeds: [0, 1]; paired questions: 500
+
+## Accuracy per seed
+
+| seed | baseline | loop | delta |
+| ---: | ---: | ---: | ---: |
+| 0 | 0.8260 | 0.8480 | +0.0220 |
+| 1 | 0.8200 | 0.8160 | -0.0040 |
+| mean ± std | 0.8230 ± 0.0042 | 0.8320 ± 0.0226 | +0.0090 |
+
+## Generation statistics
+
+| metric | baseline | loop |
+| --- | ---: | ---: |
+| mean completion tokens | 1323.5 | 1629.9 |
+| mean reasoning tokens | n/a | n/a |
+| mean reasoning length (chars) | 3624.5 | 4572.8 |
+| truncation rate (finish_reason=length) | 0.0000 | 0.0040 |
+| answer extraction failure rate | 0.0120 | 0.0200 |
+| request errors (excluded) | 0 | 0 |
+| scored rows | 1000 | 1000 |
+
+## Paired tests
+
+| test | statistic | p-value |
+| --- | --- | ---: |
+| sign test, per-question mean over 2 seeds (loop − baseline) | +48 / −40 / =412 | 0.4557 |
+| Wilcoxon signed-rank (scipy), same differences | W=1772.0, n=88 | 0.3893 |
+| McNemar exact, seed 0 (500 questions) | baseline-only 22 / loop-only 33 | 0.177 |
+[07:37:32 +71m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555.tar.gz (3.1M)
+[07:37:32 +71m] exit code 0; session dir /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555
+[07:37:32 +71m] COPY THIS FILE OFF THE NODE: /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_062555.tar.gz
