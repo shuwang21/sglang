@@ -340,3 +340,32 @@ tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: f
 [loop] 6300/12032  elapsed 115.1 min  eta 104.7 min  54.7 req/min  1367 out tok/s
 [baseline] 8450/12032  elapsed 115.8 min  eta 49.1 min  73.0 req/min  1509 out tok/s
 [loop] 6350/12032  elapsed 116.0 min  eta 103.8 min  54.7 req/min  1368 out tok/s
+[baseline] 8500/12032  elapsed 116.5 min  eta 48.4 min  73.0 req/min  1509 out tok/s
+[baseline] 8550/12032  elapsed 117.0 min  eta 47.7 min  73.1 req/min  1512 out tok/s
+[loop] 6400/12032  elapsed 117.0 min  eta 103.0 min  54.7 req/min  1368 out tok/s
+[baseline] 8600/12032  elapsed 117.7 min  eta 47.0 min  73.1 req/min  1514 out tok/s
+[loop] 6450/12032  elapsed 118.0 min  eta 102.1 min  54.7 req/min  1366 out tok/s
+[baseline] 8650/12032  elapsed 118.3 min  eta 46.3 min  73.1 req/min  1512 out tok/s
+[baseline] 8700/12032  elapsed 119.0 min  eta 45.6 min  73.1 req/min  1510 out tok/s
+[loop] 6500/12032  elapsed 119.2 min  eta 101.4 min  54.5 req/min  1368 out tok/s
+[baseline] 8750/12032  elapsed 119.8 min  eta 44.9 min  73.1 req/min  1509 out tok/s
+[loop] 6550/12032  elapsed 120.1 min  eta 100.5 min  54.5 req/min  1367 out tok/s
+[baseline] 8800/12032  elapsed 120.4 min  eta 44.2 min  73.1 req/min  1510 out tok/s
+[22:55:50 +122m] report: reports/mmlu_pro_medium_full.md
+tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: file changed as we read it
+[22:55:54 +122m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345.tar.gz (15M)
+[baseline] 8850/12032  elapsed 121.2 min  eta 43.6 min  73.0 req/min  1508 out tok/s
+[loop] 6600/12032  elapsed 121.2 min  eta 99.8 min  54.4 req/min  1365 out tok/s
+[baseline] 8900/12032  elapsed 121.8 min  eta 42.9 min  73.0 req/min  1511 out tok/s
+[loop] 6650/12032  elapsed 122.0 min  eta 98.7 min  54.5 req/min  1365 out tok/s
+[baseline] 8950/12032  elapsed 122.4 min  eta 42.1 min  73.1 req/min  1513 out tok/s
+[loop] 6700/12032  elapsed 122.8 min  eta 97.8 min  54.5 req/min  1367 out tok/s
+[baseline] 9000/12032  elapsed 123.0 min  eta 41.4 min  73.2 req/min  1511 out tok/s
+[baseline] 9050/12032  elapsed 123.6 min  eta 40.7 min  73.2 req/min  1513 out tok/s
+[loop] 6750/12032  elapsed 123.9 min  eta 97.0 min  54.5 req/min  1365 out tok/s
+[baseline] 9100/12032  elapsed 124.3 min  eta 40.0 min  73.2 req/min  1511 out tok/s
+[loop] 6800/12032  elapsed 124.9 min  eta 96.1 min  54.4 req/min  1368 out tok/s
+[baseline] 9150/12032  elapsed 125.0 min  eta 39.4 min  73.2 req/min  1509 out tok/s
+[baseline] 9200/12032  elapsed 125.6 min  eta 38.7 min  73.2 req/min  1510 out tok/s
+[loop] 6850/12032  elapsed 125.8 min  eta 95.2 min  54.4 req/min  1368 out tok/s
+[baseline] 9250/12032  elapsed 126.3 min  eta 38.0 min  73.2 req/min  1510 out tok/s
