@@ -1,0 +1,50 @@
+/data/shuwang21/home/sglang-looped/python/sglang/launch_server.py:71: UserWarning: 'python -m sglang.launch_server' is still supported, but 'sglang serve' is the recommended entrypoint.
+  Example: sglang serve --model-path <model> [options]
+  warnings.warn(
+[1;33m'--disable-cuda-graph' is deprecated and will be removed in a future release. Use '--cuda-graph-backend-{decode,prefill}=disabled' instead.[0m
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[2026-11-22 06:12:55] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[2026-11-22 06:12:55] mxfp4 quantization is not fully optimized yet. The speed can be slower than non-quantized models.
+[2026-11-22 06:12:55] Hybrid SWA model detected. architectures=['GptOssForCausalLM']
+[2026-11-22 06:12:55] Detected GPT-OSS model, enabling triton_kernels MOE kernel.
+[2026-11-22 06:12:56] kill_process_tree called: parent_pid=210304, include_parent=False, pid=210304
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/shuwang21/home/sglang-looped/python/sglang/launch_server.py", line 84, in <module>
+    run_server(server_args)
+  File "/data/shuwang21/home/sglang-looped/python/sglang/launch_server.py", line 65, in run_server
+    from sglang.srt.entrypoints.http_server import launch_server
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/entrypoints/http_server.py", line 75, in <module>
+    from sglang.srt.entrypoints.engine import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/entrypoints/engine.py", line 64, in <module>
+    from sglang.srt.managers.data_parallel_controller import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/data_parallel_controller.py", line 47, in <module>
+    from sglang.srt.managers.scheduler import run_scheduler_process
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/scheduler.py", line 81, in <module>
+    from sglang.srt.disaggregation.decode import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/disaggregation/decode.py", line 81, in <module>
+    from sglang.srt.managers.utils import GenerationBatchResult
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/utils.py", line 14, in <module>
+    from sglang.srt.layers.logits_processor import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/layers/logits_processor.py", line 46, in <module>
+    from sglang.srt.layers.logprob_processor import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/layers/logprob_processor.py", line 15, in <module>
+    from sglang.srt.model_executor.runner_utils.pool import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/runner_utils/__init__.py", line 22, in <module>
+    from sglang.srt.model_executor.runner_utils.deepep_adapter import (  # noqa: F401
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/runner_utils/deepep_adapter.py", line 21, in <module>
+    from sglang.srt.layers.moe.token_dispatcher.deepep import DeepEPBuffer
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/layers/moe/token_dispatcher/__init__.py", line 18, in <module>
+    from sglang.srt.layers.moe.token_dispatcher.deepep import (
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/layers/moe/token_dispatcher/deepep.py", line 53, in <module>
+    from deep_ep import Buffer, Config
+  File "/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/deep_ep/__init__.py", line 92, in <module>
+    init_jit()
+  File "/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/deep_ep/__init__.py", line 87, in init_jit
+    find_cuda_home(),   # CUDA home
+    ^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/.venv/lib/python3.12/site-packages/deep_ep/__init__.py", line 50, in find_cuda_home
+    assert cuda_home is not None
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
