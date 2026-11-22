@@ -28,6 +28,11 @@ SOURCE_FILES = (
     "python/sglang/srt/models/qwen3.py",
     "python/sglang/srt/models/llama.py",
 )
+# Files fetched by ``prepare``. ``run_one`` must resolve the snapshot with the
+# same patterns: newer huggingface_hub treats a local-only lookup without them
+# as incomplete (.gitattributes / LICENSE / README.md were never downloaded)
+# and raises IncompleteSnapshotError.
+MODEL_ALLOW_PATTERNS = ("*.json", "*.jinja", "*.model", "*.txt", "*.safetensors")
 
 
 def read_json(path):
@@ -60,6 +65,24 @@ def capture(command):
     return subprocess.check_output(command, cwd=REPO, text=True).strip()
 
 
+def installed_packages():
+    """``pip freeze`` when pip exists, else importlib.metadata.
+
+    uv-created venvs often have no pip, so ``python -m pip`` fails there.
+    """
+    try:
+        return capture([sys.executable, "-m", "pip", "freeze", "--all"])
+    except (subprocess.CalledProcessError, OSError):
+        from importlib.metadata import distributions
+
+        names = {}
+        for dist in distributions():
+            name = dist.metadata["Name"]
+            if name:
+                names[name.lower()] = f"{name}=={dist.version}"
+        return "\n".join(names[key] for key in sorted(names))
+
+
 def inventory():
     return {
         "python": sys.version,
@@ -67,7 +90,7 @@ def inventory():
         "git_head": capture(["git", "rev-parse", "HEAD"]),
         "git_status": capture(["git", "status", "--porcelain"]),
         "source_sha256": {name: digest(REPO / name) for name in SOURCE_FILES},
-        "pip_freeze": capture([sys.executable, "-m", "pip", "freeze", "--all"]),
+        "pip_freeze": installed_packages(),
         "nvidia_smi": capture(["nvidia-smi"]),
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
@@ -123,13 +146,7 @@ def prepare_data(args):
             snapshot_download(
                 repo_id=repo_id,
                 revision=revision,
-                allow_patterns=[
-                    "*.json",
-                    "*.jinja",
-                    "*.model",
-                    "*.txt",
-                    "*.safetensors",
-                ],
+                allow_patterns=list(MODEL_ALLOW_PATTERNS),
             )
     for name, spec in lock["tasks"].items():
         dest = root / "datasets" / name
@@ -154,7 +171,7 @@ def prepare_data(args):
     write_json(root / "assets.lock.json", lock)
 
 
-def server_command(entry, mode, model, port):
+def server_command(entry, mode, model, port, attention_backend):
     command = [
         sys.executable,
         "-m",
@@ -169,8 +186,11 @@ def server_command(entry, mode, model, port):
         "1",
         "--dtype",
         "bfloat16",
+        "--attention-backend",
+        attention_backend,
+        # info prints the full resolved server args at startup.
         "--log-level",
-        "warning",
+        "info",
     ]
     if mode == "loop":
         if entry["loop_config"] is None:
@@ -217,9 +237,59 @@ def stop_owned_process(process):
             process.wait()
 
 
-def check_port(port):
+def port_is_free(port):
     with socket.socket() as sock:
+        # Match the server, which binds with SO_REUSEADDR: TIME_WAIT sockets
+        # from finished client connections must not count as "in use".
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("127.0.0.1", port))
+        except OSError:
+            return False
+    return True
+
+
+def wait_port_released(port, timeout=60.0, interval=1.0):
+    """Poll until ``port`` can be bound again, up to ``timeout`` seconds.
+
+    A stopped server's listening socket (and its child processes) can hold the
+    port for a few seconds after the process group exits.
+    """
+    deadline = time.monotonic() + timeout
+    while not port_is_free(port):
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(interval)
+    return True
+
+
+def check_port(port, attempts=5, interval=3.0):
+    for attempt in range(attempts):
+        if port_is_free(port):
+            return
+        if attempt + 1 < attempts:
+            time.sleep(interval)
+    # Re-raise the real error (Address already in use) for the log.
+    with socket.socket() as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(("127.0.0.1", port))
+
+
+# Server env defaults applied only when the caller has not set them. The GPU
+# nodes ship nvcc 12.8, and DeepGEMM's JIT needs >= 12.9.
+SERVER_ENV_DEFAULTS = {"SGLANG_ENABLE_JIT_DEEPGEMM": "0"}
+
+
+def server_environment(base):
+    environment = dict(base)
+    record = {}
+    for name, default in SERVER_ENV_DEFAULTS.items():
+        if name in environment:
+            record[name] = {"value": environment[name], "source": "inherited"}
+        else:
+            environment[name] = default
+            record[name] = {"value": default, "source": "reproduce-default"}
+    return environment, record
 
 
 def check_source():
@@ -264,9 +334,19 @@ def run_one(args, entry, mode):
             repo_id=entry["model"],
             revision=lock["models"][entry["model"]],
             local_files_only=True,
+            allow_patterns=list(MODEL_ALLOW_PATTERNS),
         )
-        write_json(dest / "environment.json", inventory())
-        write_json(dest / "experiment.json", entry)
+        environment, server_env = server_environment(
+            dict(os.environ, CUDA_VISIBLE_DEVICES=args.gpu)
+        )
+        environment["PYTHONPATH"] = str(REPO / "python")
+        write_json(
+            dest / "environment.json", dict(inventory(), server_env=server_env)
+        )
+        write_json(
+            dest / "experiment.json",
+            dict(entry, attention_backend=args.attention_backend),
+        )
         write_json(dest / "assets.lock.json", lock)
         command = [
             sys.executable,
@@ -297,15 +377,20 @@ def run_one(args, entry, mode):
                 "--paper-sha256",
                 args.paper_sha256,
             ]
-        environment = dict(os.environ, CUDA_VISIBLE_DEVICES=args.gpu)
-        environment["PYTHONPATH"] = str(REPO / "python")
         started = time.monotonic()
         with contextlib.ExitStack() as stack:
             if args.backend == "sglang":
                 check_port(args.port)
-                serve = server_command(entry, mode, model, args.port)
+                serve = server_command(
+                    entry, mode, model, args.port, args.attention_backend
+                )
                 write_json(
-                    dest / "commands.json", {"server": serve, "evaluation": command}
+                    dest / "commands.json",
+                    {
+                        "server": serve,
+                        "evaluation": command,
+                        "attention_backend": args.attention_backend,
+                    },
                 )
                 server_log = stack.enter_context((dest / "server.log").open("w"))
                 process = subprocess.Popen(
@@ -316,6 +401,9 @@ def run_one(args, entry, mode):
                     stderr=subprocess.STDOUT,
                     start_new_session=True,
                 )
+                # Callbacks run LIFO: stop the server, then wait for its port
+                # so the next run (e.g. loop right after baseline) can bind it.
+                stack.callback(wait_port_released, args.port)
                 stack.callback(stop_owned_process, process)
                 wait_ready(process, args.port, args.startup_timeout)
             else:
@@ -364,6 +452,7 @@ def run(args):
                             "id": entry["id"],
                             "mode": mode,
                             "backend": args.backend,
+                            "attention_backend": args.attention_backend,
                             "tasks": manifest()["suites"][entry["suite"]],
                             "limit": entry["limit"],
                             "loop_config": entry["loop_config"],
@@ -374,7 +463,9 @@ def run(args):
         return
     for entry in entries:
         if "loop" in args.modes:
-            server_command(entry, "loop", "<locked-model>", args.port)
+            server_command(
+                entry, "loop", "<locked-model>", args.port, args.attention_backend
+            )
         if args.backend == "paper-hf" and not entry["model"].startswith("Qwen/Qwen3"):
             raise ValueError("The archived author patch only implements Qwen3")
     if args.backend == "paper-hf" and "loop" in args.modes:
@@ -478,6 +569,11 @@ def main():
         "--modes", nargs="+", choices=["baseline", "loop"], default=["baseline", "loop"]
     )
     parser.add_argument("--backend", choices=["sglang", "paper-hf"], default="sglang")
+    parser.add_argument(
+        "--attention-backend",
+        default="fa3",
+        help="SGLang --attention-backend for the server (sglang backend only)",
+    )
     parser.add_argument("--paper-source")
     parser.add_argument("--paper-sha256")
     parser.add_argument("--config-overrides")

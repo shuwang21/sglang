@@ -69,6 +69,13 @@ from sglang.srt.model_loader.weight_utils import (
     RUNAI_STREAMER_TENSOR_ATTR,
     default_weight_loader,
 )
+from sglang.srt.models.looped_transformer import (
+    LoopConfig,
+    LoopModelAdapter,
+    LoopState,
+    TrainingFreeLoopPlugin,
+)
+from sglang.srt.models.looped_kv_write import plan_kv_write
 from sglang.srt.models.utils import (
     create_fused_set_kv_buffer_arg,
     enable_fused_set_kv_buffer,
@@ -76,6 +83,7 @@ from sglang.srt.models.utils import (
 from sglang.srt.runtime_context import (
     get_exec,
     get_forward,
+    get_model,
     get_parallel,
     get_platform,
 )
@@ -93,6 +101,7 @@ from sglang.srt.utils import (
 from sglang.srt.utils.custom_op import register_custom_op
 
 _is_cpu = is_cpu()
+_loop_plugin = TrainingFreeLoopPlugin()
 _is_npu = is_npu()
 _is_hip = is_hip()
 _is_cuda = is_cuda()
@@ -476,6 +485,13 @@ class GptOssAttention(nn.Module):
         qkv, _ = self.qkv_proj(hidden_states)
         q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)
 
+        # Decide once who writes this token's KV: the fused rotary kernel, the
+        # attention backend, or (loop trial pass) nobody. forward_core reuses
+        # the decision so the two sides can never disagree.
+        kv_plan = plan_kv_write(
+            fused_available=not _is_npu and enable_fused_set_kv_buffer(forward_batch),
+            forward_batch=forward_batch,
+        )
         extra_args = {}
         if not _is_npu:
             extra_args = {
@@ -485,22 +501,26 @@ class GptOssAttention(nn.Module):
                         layer=self.attn,
                         forward_batch=forward_batch,
                     )
-                    if enable_fused_set_kv_buffer(forward_batch)
+                    if kv_plan.fused
                     else None
                 ),
             }
         q, k = self.rotary_emb(positions, q, k, **extra_args)
-        inner_state = q, k, v, forward_batch
+        inner_state = q, k, v, forward_batch, kv_plan.attention
         return None, forward_batch, inner_state
 
     def forward_core(self, intermediate_state):
         hidden_states, forward_batch, inner_state = intermediate_state
         if inner_state is None:
             return hidden_states
+        q, k, v, forward_batch, save_kv_cache = inner_state
         attn_output = self.attn(
-            *inner_state,
+            q,
+            k,
+            v,
+            forward_batch,
             sinks=self.sinks,
-            save_kv_cache=not enable_fused_set_kv_buffer(forward_batch),
+            save_kv_cache=save_kv_cache,
         )
         output, _ = self.o_proj(attn_output)
         return output
@@ -677,6 +697,7 @@ class GptOssModel(nn.Module):
         decoder_layer_type: type[nn.Module] = GptOssDecoderLayer,
     ) -> None:
         super().__init__()
+        self.config = config
         self.padding_idx = config.pad_token_id
         self.vocab_size = config.vocab_size
         self.pp_group = get_parallel().pp_group
@@ -716,6 +737,101 @@ class GptOssModel(nn.Module):
         self.layers_to_capture = []
 
     def forward(
+        self,
+        input_ids: torch.Tensor,
+        positions: torch.Tensor,
+        forward_batch: ForwardBatch,
+        input_embeds: torch.Tensor = None,
+        pp_proxy_tensors: Optional[PPProxyTensors] = None,
+    ) -> Union[torch.Tensor, PPProxyTensors]:
+        """Run the optional training-free loop, else the standard stack."""
+
+        loop_config = LoopConfig.from_json(get_model().loop_config)
+        if (
+            loop_config is not None
+            and loop_config.k > 1
+            and len(self.layers_to_capture) > 0
+        ):
+            raise NotImplementedError(
+                "--loop-config is not supported together with aux hidden-state "
+                "capture (EAGLE3 / DFlash speculative decoding) on gpt-oss"
+            )
+        if (
+            loop_config is None
+            or loop_config.k <= 1
+            or forward_batch.forward_mode.is_mixed()
+            or (
+                not forward_batch.forward_mode.is_prefill()
+                and loop_config.decode_mode != "full"
+            )
+        ):
+            return self._forward_standard(
+                input_ids, positions, forward_batch, input_embeds, pp_proxy_tensors
+            )
+
+        def initial_state() -> LoopState:
+            if self.pp_group.is_first_rank:
+                hidden_states = (
+                    self.embed_tokens(input_ids)
+                    if input_embeds is None
+                    else input_embeds
+                )
+                return LoopState(hidden_states, None)
+            assert pp_proxy_tensors is not None
+            return LoopState(
+                pp_proxy_tensors["hidden_states"], pp_proxy_tensors["residual"]
+            )
+
+        def run_layer(layer_id: int, state: LoopState) -> LoopState:
+            with get_global_expert_distribution_recorder().with_current_layer(layer_id):
+                hidden_states, residual = self.layers[layer_id](
+                    positions, state.hidden_states, forward_batch, state.residual
+                )
+            if getattr(hidden_states, "_sglang_needs_allreduce_fusion", False):
+                # The MLP all-reduce was deferred into the next layer. Loop
+                # states are cloned and blended, which would drop that flag
+                # and mix partial sums, so this layout is unsupported.
+                raise NotImplementedError(
+                    "--loop-config does not support the fused MLP all-reduce "
+                    "path (attention TP > 1) on gpt-oss"
+                )
+            return LoopState(hidden_states, residual)
+
+        def run_prefix(state: LoopState) -> LoopState:
+            for layer_id in range(self.start_layer, loop_config.start):
+                state = run_layer(layer_id, state)
+            return state
+
+        def finalize(state: LoopState):
+            for layer_id in range(loop_config.end, self.end_layer):
+                state = run_layer(layer_id, state)
+            hidden_states, residual = state.hidden_states, state.residual
+            if not self.pp_group.is_last_rank:
+                return PPProxyTensors(
+                    {"hidden_states": hidden_states, "residual": residual}
+                )
+            if hidden_states.shape[0] != 0:
+                if residual is None:
+                    hidden_states = self.norm(hidden_states)
+                else:
+                    hidden_states, _ = self.norm(hidden_states, residual)
+            return hidden_states
+
+        adapter = LoopModelAdapter(
+            num_layers=self.config.num_hidden_layers,
+            start_layer=self.start_layer,
+            end_layer=self.end_layer,
+            is_first_rank=self.pp_group.is_first_rank,
+            is_last_rank=self.pp_group.is_last_rank,
+            is_prefill=forward_batch.forward_mode.is_prefill(),
+            is_mixed=forward_batch.forward_mode.is_mixed(),
+            initial_state=lambda: run_prefix(initial_state()),
+            run_layer=run_layer,
+            finalize=finalize,
+        )
+        return _loop_plugin.run(loop_config, adapter, forward_batch)
+
+    def _forward_standard(
         self,
         input_ids: torch.Tensor,
         positions: torch.Tensor,

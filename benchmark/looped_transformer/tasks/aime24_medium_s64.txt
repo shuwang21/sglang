@@ -1,0 +1,6 @@
+# AIME 2024, MEDIUM effort, 64 seeds: the control for aime24_low_s64.txt
+# (same problems and settings, only --reasoning-effort differs). Medium
+# writes longer outputs, so expect a few times the low run's 22 min on one
+# B200; give it a TIME_BUDGET_MIN that lets it finish (a cut-off run leaves
+# the last seeds partial, and summarize then drops the questions they miss).
+aime24_medium_s64|--dataset aime24 --reasoning-effort medium --temperature 1.0 --top-p 1.0 --max-tokens 32768 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63  --concurrency 256

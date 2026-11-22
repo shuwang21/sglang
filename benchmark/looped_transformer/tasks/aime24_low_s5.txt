@@ -1,0 +1,4 @@
+# AIME 2024, low effort: 30 problems x 5 seeds = 150 requests, all in flight
+# at once (--concurrency 150). On 1 GPU run_session.sh runs baseline, then loop.
+#   TASKS_FILE=benchmark/looped_transformer/tasks/aime24_low_s5.txt bash benchmark/looped_transformer/run_session.sh
+aime24_low_s5|--dataset aime24 --reasoning-effort low --temperature 1.0 --top-p 1.0 --max-tokens 32768 --seeds 0 1 2 3 4 --concurrency 150
