@@ -1,150 +1,150 @@
 {
   "baseline": {
     "per_seed": {
-      "0": 0.7757575757575758
+      "0": 0.7602693602693603
     },
-    "mean": 0.7757575757575758,
+    "mean": 0.7602693602693603,
     "std": 0.0,
-    "n_rows": 660,
+    "n_rows": 1485,
     "errors": 0,
-    "completion_tokens": 1127.15,
-    "reasoning_chars": 3291.2909090909093,
+    "completion_tokens": 1188.213468013468,
+    "reasoning_chars": 3533.7824915824917,
     "reasoning_tokens": null,
-    "truncation_rate": 0.0,
-    "extraction_failure_rate": 0.016666666666666666
+    "truncation_rate": 0.0006734006734006734,
+    "extraction_failure_rate": 0.014141414141414142
   },
   "loop": {
     "per_seed": {
-      "0": 0.7862745098039216
+      "0": 0.7771689497716895
     },
-    "mean": 0.7862745098039216,
+    "mean": 0.7771689497716895,
     "std": 0.0,
-    "n_rows": 510,
+    "n_rows": 1095,
     "errors": 0,
-    "completion_tokens": 1265.5313725490196,
-    "reasoning_chars": 3662.676470588235,
+    "completion_tokens": 1402.1086757990868,
+    "reasoning_chars": 4177.175342465754,
     "reasoning_tokens": null,
-    "truncation_rate": 0.0,
-    "extraction_failure_rate": 0.01568627450980392
+    "truncation_rate": 0.0036529680365296802,
+    "extraction_failure_rate": 0.021004566210045664
   },
   "sign_test": {
-    "positive": 30,
-    "negative": 30,
-    "ties": 447,
-    "p": 1.0
+    "positive": 74,
+    "negative": 65,
+    "ties": 956,
+    "p": 0.4975641415966092
   },
   "wilcoxon": {
-    "n": 60,
-    "statistic": 915.0,
-    "p": 1.0,
+    "n": 139,
+    "statistic": 4550.0,
+    "p": 0.4452427442174438,
     "method": "scipy"
   },
   "mcnemar": {
-    "base_only": 30,
-    "loop_only": 30,
-    "p": 1.0,
+    "base_only": 65,
+    "loop_only": 74,
+    "p": 0.4975641415966092,
     "seed": 0,
-    "n": 507
+    "n": 1095
   },
-  "paired_questions": 507,
+  "paired_questions": 1095,
   "per_category": {
     "biology": {
-      "n": 27,
-      "baseline": 0.8888888888888888,
-      "loop": 0.8518518518518519,
-      "delta": -0.03703703703703698,
+      "n": 64,
+      "baseline": 0.9375,
+      "loop": 0.921875,
+      "delta": -0.015625,
       "sign_p": 1.0
     },
     "business": {
-      "n": 27,
-      "baseline": 0.9259259259259259,
-      "loop": 0.8518518518518519,
-      "delta": -0.07407407407407407,
-      "sign_p": 0.5
-    },
-    "chemistry": {
-      "n": 40,
-      "baseline": 0.95,
-      "loop": 0.95,
-      "delta": 0.0,
+      "n": 64,
+      "baseline": 0.890625,
+      "loop": 0.90625,
+      "delta": 0.015625,
       "sign_p": 1.0
     },
+    "chemistry": {
+      "n": 93,
+      "baseline": 0.8709677419354839,
+      "loop": 0.8924731182795699,
+      "delta": 0.021505376344086002,
+      "sign_p": 0.75390625
+    },
     "computer science": {
-      "n": 24,
-      "baseline": 0.8333333333333334,
-      "loop": 0.875,
-      "delta": 0.04166666666666663,
+      "n": 46,
+      "baseline": 0.8260869565217391,
+      "loop": 0.8478260869565217,
+      "delta": 0.021739130434782594,
       "sign_p": 1.0
     },
     "economics": {
-      "n": 40,
-      "baseline": 0.925,
-      "loop": 0.975,
-      "delta": 0.04999999999999993,
-      "sign_p": 0.5
-    },
-    "engineering": {
-      "n": 50,
-      "baseline": 0.64,
-      "loop": 0.62,
-      "delta": -0.020000000000000018,
+      "n": 71,
+      "baseline": 0.9014084507042254,
+      "loop": 0.9014084507042254,
+      "delta": 0.0,
       "sign_p": 1.0
     },
+    "engineering": {
+      "n": 102,
+      "baseline": 0.5490196078431373,
+      "loop": 0.5784313725490197,
+      "delta": 0.02941176470588236,
+      "sign_p": 0.6636238098144531
+    },
     "health": {
-      "n": 36,
-      "baseline": 0.75,
-      "loop": 0.75,
-      "delta": 0.0,
+      "n": 83,
+      "baseline": 0.7951807228915663,
+      "loop": 0.8072289156626506,
+      "delta": 0.012048192771084376,
       "sign_p": 1.0
     },
     "history": {
-      "n": 10,
-      "baseline": 0.6,
-      "loop": 0.6,
-      "delta": 0.0,
-      "sign_p": 1.0
+      "n": 25,
+      "baseline": 0.64,
+      "loop": 0.72,
+      "delta": 0.07999999999999996,
+      "sign_p": 0.625
     },
     "law": {
-      "n": 41,
-      "baseline": 0.36585365853658536,
-      "loop": 0.4146341463414634,
-      "delta": 0.04878048780487804,
-      "sign_p": 0.75390625
+      "n": 84,
+      "baseline": 0.39285714285714285,
+      "loop": 0.44047619047619047,
+      "delta": 0.047619047619047616,
+      "sign_p": 0.480682373046875
     },
     "math": {
-      "n": 52,
-      "baseline": 0.9423076923076923,
-      "loop": 0.9423076923076923,
+      "n": 124,
+      "baseline": 0.9112903225806451,
+      "loop": 0.9112903225806451,
       "delta": 0.0,
       "sign_p": 1.0
     },
     "other": {
-      "n": 41,
-      "baseline": 0.7317073170731707,
-      "loop": 0.6829268292682927,
-      "delta": -0.04878048780487798,
-      "sign_p": 0.7265625
+      "n": 88,
+      "baseline": 0.7272727272727273,
+      "loop": 0.6818181818181818,
+      "delta": -0.045454545454545525,
+      "sign_p": 0.5234670639038086
     },
     "philosophy": {
-      "n": 28,
-      "baseline": 0.75,
-      "loop": 0.7857142857142857,
-      "delta": 0.0357142857142857,
-      "sign_p": 1.0
+      "n": 56,
+      "baseline": 0.6428571428571429,
+      "loop": 0.6964285714285714,
+      "delta": 0.05357142857142849,
+      "sign_p": 0.453125
     },
     "physics": {
-      "n": 62,
-      "baseline": 0.8225806451612904,
-      "loop": 0.8548387096774194,
-      "delta": 0.032258064516129004,
-      "sign_p": 0.7265625
+      "n": 125,
+      "baseline": 0.808,
+      "loop": 0.792,
+      "delta": -0.016000000000000014,
+      "sign_p": 0.79052734375
     },
     "psychology": {
-      "n": 29,
-      "baseline": 0.8620689655172413,
-      "loop": 0.7931034482758621,
-      "delta": -0.06896551724137923,
-      "sign_p": 0.625
+      "n": 70,
+      "baseline": 0.8142857142857143,
+      "loop": 0.8,
+      "delta": -0.014285714285714235,
+      "sign_p": 1.0
     }
   },
   "mismatched_settings": []

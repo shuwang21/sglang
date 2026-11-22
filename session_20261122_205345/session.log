@@ -44,3 +44,35 @@ mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}: 12032 
 [baseline] 800/12032  elapsed 11.9 min  eta 166.8 min  67.3 req/min  1277 out tok/s
 [baseline] 850/12032  elapsed 12.5 min  eta 164.5 min  68.0 req/min  1301 out tok/s
 [loop] 650/12032  elapsed 12.5 min  eta 219.1 min  51.9 req/min  1115 out tok/s
+[baseline] 900/12032  elapsed 13.2 min  eta 163.8 min  68.0 req/min  1296 out tok/s
+[loop] 700/12032  elapsed 13.6 min  eta 220.0 min  51.5 req/min  1126 out tok/s
+[baseline] 950/12032  elapsed 13.9 min  eta 162.1 min  68.3 req/min  1326 out tok/s
+[loop] 750/12032  elapsed 14.4 min  eta 217.4 min  51.9 req/min  1150 out tok/s
+[baseline] 1000/12032  elapsed 14.5 min  eta 159.8 min  69.0 req/min  1374 out tok/s
+[baseline] 1050/12032  elapsed 15.0 min  eta 157.4 min  69.8 req/min  1411 out tok/s
+[loop] 800/12032  elapsed 15.3 min  eta 214.7 min  52.3 req/min  1199 out tok/s
+[baseline] 1100/12032  elapsed 15.5 min  eta 154.4 min  70.8 req/min  1425 out tok/s
+[baseline] 1150/12032  elapsed 16.0 min  eta 151.7 min  71.7 req/min  1432 out tok/s
+[loop] 850/12032  elapsed 16.1 min  eta 212.0 min  52.7 req/min  1181 out tok/s
+[baseline] 1200/12032  elapsed 16.6 min  eta 150.1 min  72.1 req/min  1452 out tok/s
+[loop] 900/12032  elapsed 16.9 min  eta 208.6 min  53.4 req/min  1218 out tok/s
+[baseline] 1250/12032  elapsed 17.2 min  eta 148.5 min  72.6 req/min  1449 out tok/s
+[loop] 950/12032  elapsed 17.6 min  eta 205.3 min  54.0 req/min  1230 out tok/s
+[baseline] 1300/12032  elapsed 17.9 min  eta 147.7 min  72.6 req/min  1445 out tok/s
+[baseline] 1350/12032  elapsed 18.5 min  eta 146.1 min  73.1 req/min  1444 out tok/s
+[loop] 1000/12032  elapsed 18.5 min  eta 204.4 min  54.0 req/min  1245 out tok/s
+[baseline] 1400/12032  elapsed 19.0 min  eta 144.4 min  73.6 req/min  1468 out tok/s
+[loop] 1050/12032  elapsed 19.5 min  eta 203.8 min  53.9 req/min  1245 out tok/s
+[baseline] 1450/12032  elapsed 19.5 min  eta 142.4 min  74.3 req/min  1470 out tok/s
+[21:15:17 +21m] report: reports/mmlu_pro_medium_full.md
+[21:15:18 +21m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345.tar.gz (3.9M)
+[loop] 1100/12032  elapsed 20.1 min  eta 199.7 min  54.7 req/min  1275 out tok/s
+[baseline] 1500/12032  elapsed 20.2 min  eta 141.7 min  74.3 req/min  1482 out tok/s
+[baseline] 1550/12032  elapsed 20.8 min  eta 140.4 min  74.7 req/min  1486 out tok/s
+[loop] 1150/12032  elapsed 20.8 min  eta 196.6 min  55.4 req/min  1301 out tok/s
+[baseline] 1600/12032  elapsed 21.3 min  eta 138.9 min  75.1 req/min  1493 out tok/s
+[loop] 1200/12032  elapsed 21.6 min  eta 194.7 min  55.6 req/min  1313 out tok/s
+[baseline] 1650/12032  elapsed 21.8 min  eta 137.4 min  75.6 req/min  1495 out tok/s
+[loop] 1250/12032  elapsed 22.4 min  eta 192.8 min  55.9 req/min  1327 out tok/s
+[baseline] 1700/12032  elapsed 22.4 min  eta 136.1 min  75.9 req/min  1497 out tok/s
+[baseline] 1750/12032  elapsed 22.9 min  eta 134.8 min  76.3 req/min  1499 out tok/s
