@@ -3,51 +3,51 @@
 - baseline: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345/runs/mmlu_pro_medium_full/baseline`
 - loop: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345/runs/mmlu_pro_medium_full/loop`
 - dataset: mmlu_pro {'path': 'TIGER-Lab/MMLU-Pro', 'config': None, 'split': 'test'}, limit=None, per_category=None, reasoning_effort=medium, temperature=1.0, top_p=1.0, max_tokens=16384
-- seeds: [0]; paired questions: 1095
-- **incomplete run: baseline 1485, loop 1095 of 12032 (question, seed) pairs.** Pairs run in hashed order, so the paired questions are a random subset.
+- seeds: [0]; paired questions: 1702
+- **incomplete run: baseline 2313, loop 1702 of 12032 (question, seed) pairs.** Pairs run in hashed order, so the paired questions are a random subset.
 
 ## Accuracy per seed
 
 | seed | baseline | loop | delta |
 | ---: | ---: | ---: | ---: |
-| 0 | 0.7603 | 0.7772 | +0.0169 |
-| mean ± std | 0.7603 ± 0.0000 | 0.7772 ± 0.0000 | +0.0169 |
+| 0 | 0.7609 | 0.7691 | +0.0082 |
+| mean ± std | 0.7609 ± 0.0000 | 0.7691 ± 0.0000 | +0.0082 |
 
 ## Generation statistics
 
 | metric | baseline | loop |
 | --- | ---: | ---: |
-| mean completion tokens | 1188.2 | 1402.1 |
+| mean completion tokens | 1175.2 | 1449.3 |
 | mean reasoning tokens | n/a | n/a |
-| mean reasoning length (chars) | 3533.8 | 4177.2 |
-| truncation rate (finish_reason=length) | 0.0007 | 0.0037 |
-| answer extraction failure rate | 0.0141 | 0.0210 |
+| mean reasoning length (chars) | 3490.6 | 4390.1 |
+| truncation rate (finish_reason=length) | 0.0004 | 0.0053 |
+| answer extraction failure rate | 0.0160 | 0.0217 |
 | request errors (excluded) | 0 | 0 |
-| scored rows | 1485 | 1095 |
+| scored rows | 2313 | 1702 |
 
 ## Paired tests
 
 | test | statistic | p-value |
 | --- | --- | ---: |
-| sign test, per-question mean over 1 seeds (loop − baseline) | +74 / −65 / =956 | 0.4976 |
-| Wilcoxon signed-rank (scipy), same differences | W=4550.0, n=139 | 0.4452 |
-| McNemar exact, seed 0 (1095 questions) | baseline-only 65 / loop-only 74 | 0.4976 |
+| sign test, per-question mean over 1 seeds (loop − baseline) | +112 / −100 / =1490 | 0.45 |
+| Wilcoxon signed-rank (scipy), same differences | W=10650.0, n=212 | 0.4098 |
+| McNemar exact, seed 0 (1702 questions) | baseline-only 100 / loop-only 112 | 0.45 |
 
 ## Accuracy per category (paired questions, mean over seeds)
 
 | category | questions | baseline | loop | delta | sign test p |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| biology | 64 | 0.9375 | 0.9219 | -0.0156 | 1 |
-| business | 64 | 0.8906 | 0.9062 | +0.0156 | 1 |
-| chemistry | 93 | 0.8710 | 0.8925 | +0.0215 | 0.754 |
-| computer science | 46 | 0.8261 | 0.8478 | +0.0217 | 1 |
-| economics | 71 | 0.9014 | 0.9014 | +0.0000 | 1 |
-| engineering | 102 | 0.5490 | 0.5784 | +0.0294 | 0.664 |
-| health | 83 | 0.7952 | 0.8072 | +0.0120 | 1 |
-| history | 25 | 0.6400 | 0.7200 | +0.0800 | 0.625 |
-| law | 84 | 0.3929 | 0.4405 | +0.0476 | 0.481 |
-| math | 124 | 0.9113 | 0.9113 | +0.0000 | 1 |
-| other | 88 | 0.7273 | 0.6818 | -0.0455 | 0.523 |
-| philosophy | 56 | 0.6429 | 0.6964 | +0.0536 | 0.453 |
-| physics | 125 | 0.8080 | 0.7920 | -0.0160 | 0.791 |
-| psychology | 70 | 0.8143 | 0.8000 | -0.0143 | 1 |
+| biology | 105 | 0.8952 | 0.8857 | -0.0095 | 1 |
+| business | 99 | 0.8687 | 0.8990 | +0.0303 | 0.508 |
+| chemistry | 148 | 0.8851 | 0.8986 | +0.0135 | 0.791 |
+| computer science | 59 | 0.8475 | 0.8814 | +0.0339 | 0.688 |
+| economics | 118 | 0.8644 | 0.8814 | +0.0169 | 0.727 |
+| engineering | 149 | 0.5839 | 0.5973 | +0.0134 | 0.864 |
+| health | 117 | 0.7692 | 0.7863 | +0.0171 | 0.774 |
+| history | 40 | 0.6500 | 0.7250 | +0.0750 | 0.375 |
+| law | 154 | 0.4286 | 0.4545 | +0.0260 | 0.618 |
+| math | 186 | 0.9194 | 0.9086 | -0.0108 | 0.754 |
+| other | 144 | 0.6944 | 0.6667 | -0.0278 | 0.572 |
+| philosophy | 82 | 0.6341 | 0.6829 | +0.0488 | 0.289 |
+| physics | 188 | 0.8245 | 0.7926 | -0.0319 | 0.263 |
+| psychology | 113 | 0.7699 | 0.7788 | +0.0088 | 1 |
