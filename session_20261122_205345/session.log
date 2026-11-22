@@ -164,3 +164,34 @@ tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: f
 [baseline] 3950/12032  elapsed 52.8 min  eta 108.1 min  74.8 req/min  1515 out tok/s
 [loop] 3000/12032  elapsed 53.5 min  eta 160.9 min  56.1 req/min  1359 out tok/s
 [baseline] 4000/12032  elapsed 53.6 min  eta 107.6 min  74.7 req/min  1519 out tok/s
+[baseline] 4050/12032  elapsed 54.2 min  eta 106.8 min  74.8 req/min  1517 out tok/s
+[loop] 3050/12032  elapsed 54.4 min  eta 160.3 min  56.0 req/min  1360 out tok/s
+[baseline] 4100/12032  elapsed 54.8 min  eta 105.9 min  74.9 req/min  1517 out tok/s
+[baseline] 4150/12032  elapsed 55.4 min  eta 105.2 min  74.9 req/min  1522 out tok/s
+[loop] 3100/12032  elapsed 55.6 min  eta 160.2 min  55.7 req/min  1355 out tok/s
+[baseline] 4200/12032  elapsed 56.1 min  eta 104.6 min  74.9 req/min  1523 out tok/s
+[loop] 3150/12032  elapsed 56.5 min  eta 159.3 min  55.8 req/min  1365 out tok/s
+[baseline] 4250/12032  elapsed 56.6 min  eta 103.7 min  75.0 req/min  1524 out tok/s
+[baseline] 4300/12032  elapsed 57.2 min  eta 102.8 min  75.2 req/min  1523 out tok/s
+[loop] 3200/12032  elapsed 57.3 min  eta 158.1 min  55.9 req/min  1369 out tok/s
+[baseline] 4350/12032  elapsed 57.8 min  eta 102.0 min  75.3 req/min  1520 out tok/s
+[loop] 3250/12032  elapsed 58.1 min  eta 157.0 min  55.9 req/min  1372 out tok/s
+[baseline] 4400/12032  elapsed 58.4 min  eta 101.3 min  75.3 req/min  1521 out tok/s
+[loop] 3300/12032  elapsed 59.2 min  eta 156.6 min  55.7 req/min  1361 out tok/s
+[baseline] 4450/12032  elapsed 59.3 min  eta 101.0 min  75.1 req/min  1519 out tok/s
+[baseline] 4500/12032  elapsed 59.9 min  eta 100.3 min  75.1 req/min  1517 out tok/s
+[loop] 3350/12032  elapsed 60.1 min  eta 155.9 min  55.7 req/min  1359 out tok/s
+[21:55:27 +61m] report: reports/mmlu_pro_medium_full.md
+tar: session_20261122_205345/runs/mmlu_pro_medium_full/loop/samples.jsonl: file changed as we read it
+tar: session_20261122_205345/runs/mmlu_pro_medium_full/baseline/samples.jsonl: file changed as we read it
+[21:55:28 +61m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261122_205345.tar.gz (8.1M)
+[baseline] 4550/12032  elapsed 60.6 min  eta 99.7 min  75.1 req/min  1513 out tok/s
+[loop] 3400/12032  elapsed 61.1 min  eta 155.0 min  55.7 req/min  1358 out tok/s
+[baseline] 4600/12032  elapsed 61.3 min  eta 99.0 min  75.1 req/min  1512 out tok/s
+[baseline] 4650/12032  elapsed 61.9 min  eta 98.2 min  75.2 req/min  1510 out tok/s
+[loop] 3450/12032  elapsed 62.1 min  eta 154.5 min  55.5 req/min  1353 out tok/s
+[baseline] 4700/12032  elapsed 62.4 min  eta 97.4 min  75.3 req/min  1515 out tok/s
+[loop] 3500/12032  elapsed 62.9 min  eta 153.4 min  55.6 req/min  1363 out tok/s
+[baseline] 4750/12032  elapsed 63.2 min  eta 96.8 min  75.2 req/min  1518 out tok/s
+[baseline] 4800/12032  elapsed 63.7 min  eta 96.0 min  75.3 req/min  1518 out tok/s
+[loop] 3550/12032  elapsed 64.0 min  eta 152.9 min  55.5 req/min  1361 out tok/s
