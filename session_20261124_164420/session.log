@@ -46,3 +46,6 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [baseline] 1750/1920  elapsed 6.6 min  eta 0.6 min  263.4 req/min  8843 out tok/s
 [baseline] 1800/1920  elapsed 6.8 min  eta 0.5 min  263.6 req/min  8895 out tok/s
 [baseline] 1850/1920  elapsed 7.1 min  eta 0.3 min  260.9 req/min  8878 out tok/s
+[baseline] 1900/1920  elapsed 7.5 min  eta 0.1 min  254.3 req/min  8799 out tok/s
+[baseline] 1920/1920  elapsed 8.5 min  eta 0.0 min  225.3 req/min  7887 out tok/s
+[16:53:55 +9m] stopping 1 server(s) (pids 1675671)
