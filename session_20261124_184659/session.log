@@ -58,3 +58,7 @@ benchmark/looped_transformer/run_session.sh: line 201: 2220702 Killed           
 [18:58:12 +11m] eval aime25_low_s64 / loop on 1 server(s)
 [loop] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
 [loop] 30 questions x 64 seeds; 0 done, 1920 to run; 1 server(s) x concurrency 256
+[loop] 50/1920  elapsed 0.6 min  eta 21.8 min  85.6 req/min  1254 out tok/s
+[loop] 100/1920  elapsed 0.8 min  eta 14.8 min  122.7 req/min  2413 out tok/s
+[loop] 150/1920  elapsed 1.1 min  eta 13.4 min  131.8 req/min  3063 out tok/s
+[loop] 200/1920  elapsed 1.4 min  eta 11.9 min  144.8 req/min  3808 out tok/s
