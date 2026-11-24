@@ -97,3 +97,111 @@ benchmark/looped_transformer/run_session.sh: line 201: 1675671 Killed           
 [17:04:45 +20m] report: reports/aime24_low_s64.md
 [17:04:46 +20m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420.tar.gz (8.4M)
 [loop] 1900/1920  elapsed 10.4 min  eta 0.1 min  182.5 req/min  7781 out tok/s
+[loop] 1920/1920  elapsed 12.2 min  eta 0.0 min  156.9 req/min  6802 out tok/s
+[17:07:01 +22m] stopping 1 server(s) (pids 1720341)
+benchmark/looped_transformer/run_session.sh: line 201: 1720341 Killed                  CUDA_VISIBLE_DEVICES="$gpu" setsid "${cmd[@]}" > "$logfile" 2>&1 < /dev/null
+[17:07:08 +22m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420.tar.gz (8.6M)
+[17:07:08 +22m] aime24_low_s64 took 22 min
+[17:07:09 +22m] report: reports/aime24_low_s64.md
+[17:07:10 +22m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420.tar.gz (8.6M)
+[17:07:10 +22m] all tasks done (failed=0)
+# gpt-oss eval: aime24_low_s64
+
+- baseline: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420/runs/aime24_low_s64/baseline`
+- loop: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420/runs/aime24_low_s64/loop`
+- dataset: aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}, limit=None, per_category=None, reasoning_effort=low, temperature=1.0, top_p=1.0, max_tokens=32768
+- seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]; paired questions: 30
+
+## Accuracy per seed
+
+| seed | baseline | loop | delta |
+| ---: | ---: | ---: | ---: |
+| 0 | 0.4000 | 0.5333 | +0.1333 |
+| 1 | 0.3667 | 0.5333 | +0.1667 |
+| 2 | 0.4000 | 0.4667 | +0.0667 |
+| 3 | 0.4000 | 0.5000 | +0.1000 |
+| 4 | 0.4667 | 0.5000 | +0.0333 |
+| 5 | 0.4333 | 0.5000 | +0.0667 |
+| 6 | 0.4667 | 0.4667 | +0.0000 |
+| 7 | 0.4000 | 0.5333 | +0.1333 |
+| 8 | 0.4667 | 0.4667 | +0.0000 |
+| 9 | 0.4667 | 0.4667 | +0.0000 |
+| 10 | 0.4333 | 0.4333 | +0.0000 |
+| 11 | 0.4000 | 0.5333 | +0.1333 |
+| 12 | 0.4000 | 0.4667 | +0.0667 |
+| 13 | 0.5000 | 0.4667 | -0.0333 |
+| 14 | 0.4333 | 0.5667 | +0.1333 |
+| 15 | 0.3000 | 0.4667 | +0.1667 |
+| 16 | 0.5667 | 0.5667 | +0.0000 |
+| 17 | 0.3000 | 0.6000 | +0.3000 |
+| 18 | 0.4333 | 0.5333 | +0.1000 |
+| 19 | 0.3333 | 0.4667 | +0.1333 |
+| 20 | 0.4000 | 0.4667 | +0.0667 |
+| 21 | 0.5333 | 0.5333 | +0.0000 |
+| 22 | 0.3333 | 0.5000 | +0.1667 |
+| 23 | 0.4667 | 0.4333 | -0.0333 |
+| 24 | 0.4000 | 0.5000 | +0.1000 |
+| 25 | 0.5000 | 0.4000 | -0.1000 |
+| 26 | 0.4333 | 0.4333 | +0.0000 |
+| 27 | 0.5000 | 0.4667 | -0.0333 |
+| 28 | 0.4333 | 0.4667 | +0.0333 |
+| 29 | 0.4333 | 0.4667 | +0.0333 |
+| 30 | 0.4667 | 0.5333 | +0.0667 |
+| 31 | 0.4333 | 0.4000 | -0.0333 |
+| 32 | 0.4000 | 0.4000 | +0.0000 |
+| 33 | 0.4000 | 0.5667 | +0.1667 |
+| 34 | 0.5333 | 0.4667 | -0.0667 |
+| 35 | 0.4000 | 0.4333 | +0.0333 |
+| 36 | 0.4333 | 0.4000 | -0.0333 |
+| 37 | 0.5000 | 0.5333 | +0.0333 |
+| 38 | 0.4000 | 0.5333 | +0.1333 |
+| 39 | 0.3667 | 0.4667 | +0.1000 |
+| 40 | 0.4000 | 0.5333 | +0.1333 |
+| 41 | 0.5000 | 0.5667 | +0.0667 |
+| 42 | 0.4667 | 0.4667 | +0.0000 |
+| 43 | 0.5667 | 0.4000 | -0.1667 |
+| 44 | 0.5000 | 0.5333 | +0.0333 |
+| 45 | 0.4000 | 0.5333 | +0.1333 |
+| 46 | 0.3667 | 0.5667 | +0.2000 |
+| 47 | 0.2667 | 0.5000 | +0.2333 |
+| 48 | 0.4667 | 0.5333 | +0.0667 |
+| 49 | 0.3333 | 0.5000 | +0.1667 |
+| 50 | 0.4667 | 0.4667 | +0.0000 |
+| 51 | 0.3667 | 0.5667 | +0.2000 |
+| 52 | 0.5333 | 0.5333 | +0.0000 |
+| 53 | 0.3667 | 0.4333 | +0.0667 |
+| 54 | 0.4333 | 0.6000 | +0.1667 |
+| 55 | 0.3667 | 0.6000 | +0.2333 |
+| 56 | 0.4000 | 0.6000 | +0.2000 |
+| 57 | 0.4333 | 0.5667 | +0.1333 |
+| 58 | 0.4000 | 0.5000 | +0.1000 |
+| 59 | 0.4667 | 0.4667 | +0.0000 |
+| 60 | 0.2333 | 0.5333 | +0.3000 |
+| 61 | 0.4667 | 0.6000 | +0.1333 |
+| 62 | 0.4000 | 0.4667 | +0.0667 |
+| 63 | 0.3333 | 0.4667 | +0.1333 |
+| mean ± std | 0.4229 ± 0.0674 | 0.5000 ± 0.0551 | +0.0771 |
+
+## Generation statistics
+
+| metric | baseline | loop |
+| --- | ---: | ---: |
+| mean completion tokens | 2100.2 | 2601.2 |
+| mean reasoning tokens | n/a | n/a |
+| mean reasoning length (chars) | 4076.3 | 5276.3 |
+| truncation rate (finish_reason=length) | 0.0000 | 0.0000 |
+| answer extraction failure rate | 0.0396 | 0.0417 |
+| request errors (excluded) | 0 | 0 |
+| scored rows | 1920 | 1920 |
+
+## Paired tests
+
+| test | statistic | p-value |
+| --- | --- | ---: |
+| sign test, per-question mean over 64 seeds (loop − baseline) | +24 / −2 / =4 | 1.049e-05 |
+| Wilcoxon signed-rank (scipy), same differences | W=5.5, n=26 | 1.512e-05 |
+| McNemar exact, seed 0 (30 questions) | baseline-only 0 / loop-only 4 | 0.125 |
+[17:07:11 +22m] report: reports/aime24_low_s64.md
+[17:07:12 +22m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420.tar.gz (8.6M)
+[17:07:12 +22m] exit code 0; session dir /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420
+[17:07:12 +22m] pull it from the laptop: bash benchmark/looped_transformer/fetch_results.sh <you>@<node>

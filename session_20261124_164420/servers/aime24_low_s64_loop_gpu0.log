@@ -4204,3 +4204,15 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 [2026-11-24 17:06:53] Decode batch, #running-req: 2, #full token: 20068, full token usage: 0.01, #swa token: 350, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 75.33, #queue-req: 0
 [2026-11-24 17:06:54] Decode batch, #running-req: 2, #full token: 20148, full token usage: 0.01, #swa token: 430, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 76.35, #queue-req: 0
 [2026-11-24 17:06:54] INFO:     127.0.0.1:37908 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:06:55] Decode batch, #running-req: 1, #full token: 8590, full token usage: 0.00, #swa token: 140, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 46.26, #queue-req: 0
+[2026-11-24 17:06:56] Decode batch, #running-req: 1, #full token: 8630, full token usage: 0.00, #swa token: 180, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.76, #queue-req: 0
+[2026-11-24 17:06:57] Decode batch, #running-req: 1, #full token: 8670, full token usage: 0.00, #swa token: 220, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.84, #queue-req: 0
+[2026-11-24 17:06:58] Decode batch, #running-req: 1, #full token: 8710, full token usage: 0.00, #swa token: 132, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.81, #queue-req: 0
+[2026-11-24 17:06:59] Decode batch, #running-req: 1, #full token: 8750, full token usage: 0.00, #swa token: 172, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.69, #queue-req: 0
+[2026-11-24 17:06:59] INFO:     127.0.0.1:36656 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:07:01] SIGTERM received. signum=None frame=None. Draining requests and shutting down...
+[2026-11-24 17:07:02] Subprocess scheduler_0 (pid=1721353) crashed with exit code -15. Triggering SIGQUIT for cleanup...
+[2026-11-24 17:07:02] SIGQUIT received. signum=None, frame=None. It usually means one child failed.
+[2026-11-24 17:07:02] Sleeping 5 seconds before crash diagnostics to let GPU activity settle.
+[2026-11-24 17:07:07] No live scheduler processes found; skipping py-spy and CUDA coredump.
+[2026-11-24 17:07:07] kill_process_tree called: parent_pid=1720341, include_parent=True, pid=1720341
