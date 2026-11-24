@@ -48,3 +48,13 @@ aime25 {'path': 'MathArena/aime_2025', 'config': None, 'split': 'train'}: 30 que
 [baseline] 1800/1920  elapsed 6.6 min  eta 0.4 min  271.6 req/min  8997 out tok/s
 [baseline] 1850/1920  elapsed 6.9 min  eta 0.3 min  269.9 req/min  9032 out tok/s
 [baseline] 1900/1920  elapsed 7.4 min  eta 0.1 min  257.2 req/min  8762 out tok/s
+[baseline] 1920/1920  elapsed 9.4 min  eta 0.0 min  204.7 req/min  7084 out tok/s
+[18:57:19 +10m] stopping 1 server(s) (pids 2220702)
+benchmark/looped_transformer/run_session.sh: line 201: 2220702 Killed                  CUDA_VISIBLE_DEVICES="$gpu" setsid "${cmd[@]}" > "$logfile" 2>&1 < /dev/null
+[18:57:26 +10m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659.tar.gz (3.9M)
+[18:57:26 +10m] === aime25_low_s64 / loop ===
+[18:57:26 +10m] starting loop server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659/servers/aime25_low_s64_loop_gpu0.log
+[18:58:12 +11m] 1 server(s) ready after 45s
+[18:58:12 +11m] eval aime25_low_s64 / loop on 1 server(s)
+[loop] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[loop] 30 questions x 64 seeds; 0 done, 1920 to run; 1 server(s) x concurrency 256
