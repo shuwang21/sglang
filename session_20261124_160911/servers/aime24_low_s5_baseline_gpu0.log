@@ -22,3 +22,4 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 [2026-11-24 16:09:53] SWAKVPool mem usage: 138.86 GB, swa size: 2696450, full size: 3370563
 [2026-11-24 16:09:53] Memory pool end. avail mem=22.43 GB
 [2026-11-24 16:09:53] Running FlashInfer autotune with cache: /data/shuwang21/home/.cache/sglang/flashinfer/autotune/0.6.18/sm100/08456eb8a447b577/rank_tp0_pp0_dp0.json
+[AutoTuner]: Tuning flashinfer::trtllm_fp4_block_scale_moe:   0%|          | 0/20 [00:00<?, ?profile/s]
