@@ -1,0 +1,6 @@
+[16:09:12 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160911, 1 task(s); 1 GPU (0): baseline, then loop
+[16:09:18 +0m] preflight dataset: aime24_low_s5
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30 questions ready
+[16:09:19 +0m] === aime24_low_s5 / baseline ===
+[16:09:19 +0m] starting baseline server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160911/servers/aime24_low_s5_baseline_gpu0.log
