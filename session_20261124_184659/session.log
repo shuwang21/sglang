@@ -94,3 +94,7 @@ benchmark/looped_transformer/run_session.sh: line 201: 2220702 Killed           
 [loop] 1700/1920  elapsed 9.0 min  eta 1.2 min  188.2 req/min  8049 out tok/s
 [loop] 1750/1920  elapsed 9.3 min  eta 0.9 min  188.9 req/min  8129 out tok/s
 [loop] 1800/1920  elapsed 9.5 min  eta 0.6 min  188.6 req/min  8140 out tok/s
+[loop] 1850/1920  elapsed 10.0 min  eta 0.4 min  185.7 req/min  8102 out tok/s
+[19:08:14 +21m] report: reports/aime25_low_s64.md
+[19:08:15 +21m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659.tar.gz (8.5M)
+[loop] 1900/1920  elapsed 10.9 min  eta 0.1 min  174.1 req/min  7779 out tok/s
