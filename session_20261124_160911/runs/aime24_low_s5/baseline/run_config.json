@@ -1,0 +1,27 @@
+{
+  "dataset": "aime24",
+  "source": {
+    "path": "HuggingFaceH4/aime_2024",
+    "config": null,
+    "split": "train"
+  },
+  "limit": null,
+  "per_category": null,
+  "num_questions": 30,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "model": "openai/gpt-oss-20b",
+  "base_url": [
+    "http://127.0.0.1:30000"
+  ],
+  "reasoning_effort": "low",
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "max_tokens": 32768,
+  "prompt_template": "Solve the following math problem. The answer is an integer from 0 to 999. The last line of your response should be of the following format: 'Answer: $NUMBER' (without quotes). Think step by step before answering.\n\n{question}"
+}
