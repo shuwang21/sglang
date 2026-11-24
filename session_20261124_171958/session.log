@@ -1,0 +1,7 @@
+[17:19:58 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_171958, 1 task(s); 1 GPU (0): baseline, then loop
+[17:19:58 +0m] attention backend: triton (GPU compute capability 10.0)
+[17:20:04 +0m] preflight dataset: aime24_medium_s64
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30 questions ready
+[17:20:06 +0m] === aime24_medium_s64 / baseline ===
+[17:20:06 +0m] starting baseline server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_171958/servers/aime24_medium_s64_baseline_gpu0.log
