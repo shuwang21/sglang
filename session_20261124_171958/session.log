@@ -48,3 +48,4 @@ tar: session_20261124_171958/session.log: file changed as we read it
 [baseline] 1650/1920  elapsed 24.7 min  eta 4.0 min  66.8 req/min  8703 out tok/s
 [baseline] 1700/1920  elapsed 25.5 min  eta 3.3 min  66.6 req/min  8701 out tok/s
 [baseline] 1750/1920  elapsed 26.4 min  eta 2.6 min  66.2 req/min  8696 out tok/s
+[baseline] 1800/1920  elapsed 27.8 min  eta 1.9 min  64.8 req/min  8701 out tok/s
