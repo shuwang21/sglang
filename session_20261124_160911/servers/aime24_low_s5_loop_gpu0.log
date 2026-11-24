@@ -364,3 +364,23 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 [2026-11-24 16:31:35] Decode batch, #running-req: 1, #full token: 6929, full token usage: 0.00, #swa token: 143, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.70, #queue-req: 0
 [2026-11-24 16:31:36] Decode batch, #running-req: 1, #full token: 6969, full token usage: 0.00, #swa token: 183, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.79, #queue-req: 0
 [2026-11-24 16:31:37] Decode batch, #running-req: 1, #full token: 7009, full token usage: 0.00, #swa token: 223, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.74, #queue-req: 0
+[2026-11-24 16:31:38] Decode batch, #running-req: 1, #full token: 7049, full token usage: 0.00, #swa token: 135, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.71, #queue-req: 0
+[2026-11-24 16:31:39] Decode batch, #running-req: 1, #full token: 7089, full token usage: 0.00, #swa token: 175, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.74, #queue-req: 0
+[2026-11-24 16:31:40] Decode batch, #running-req: 1, #full token: 7129, full token usage: 0.00, #swa token: 215, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.75, #queue-req: 0
+[2026-11-24 16:31:41] Decode batch, #running-req: 1, #full token: 7169, full token usage: 0.00, #swa token: 255, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.75, #queue-req: 0
+[2026-11-24 16:31:42] Decode batch, #running-req: 1, #full token: 7209, full token usage: 0.00, #swa token: 167, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.77, #queue-req: 0
+[2026-11-24 16:31:43] Decode batch, #running-req: 1, #full token: 7249, full token usage: 0.00, #swa token: 207, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.78, #queue-req: 0
+[2026-11-24 16:31:44] Decode batch, #running-req: 1, #full token: 7289, full token usage: 0.00, #swa token: 247, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.79, #queue-req: 0
+[2026-11-24 16:31:45] Decode batch, #running-req: 1, #full token: 7329, full token usage: 0.00, #swa token: 159, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.76, #queue-req: 0
+[2026-11-24 16:31:46] Decode batch, #running-req: 1, #full token: 7369, full token usage: 0.00, #swa token: 199, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.71, #queue-req: 0
+[2026-11-24 16:31:47] Decode batch, #running-req: 1, #full token: 7409, full token usage: 0.00, #swa token: 239, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.73, #queue-req: 0
+[2026-11-24 16:31:48] Decode batch, #running-req: 1, #full token: 7449, full token usage: 0.00, #swa token: 151, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.75, #queue-req: 0
+[2026-11-24 16:31:49] Decode batch, #running-req: 1, #full token: 7489, full token usage: 0.00, #swa token: 191, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.80, #queue-req: 0
+[2026-11-24 16:31:50] Decode batch, #running-req: 1, #full token: 7529, full token usage: 0.00, #swa token: 231, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 38.87, #queue-req: 0
+[2026-11-24 16:31:50] INFO:     127.0.0.1:52976 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 16:31:51] SIGTERM received. signum=None frame=None. Draining requests and shutting down...
+[2026-11-24 16:31:52] Subprocess scheduler_0 (pid=1598520) crashed with exit code -15. Triggering SIGQUIT for cleanup...
+[2026-11-24 16:31:52] SIGQUIT received. signum=None, frame=None. It usually means one child failed.
+[2026-11-24 16:31:52] Sleeping 5 seconds before crash diagnostics to let GPU activity settle.
+[2026-11-24 16:31:57] No live scheduler processes found; skipping py-spy and CUDA coredump.
+[2026-11-24 16:31:57] kill_process_tree called: parent_pid=1597963, include_parent=True, pid=1597963

@@ -1,0 +1,68 @@
+{
+  "baseline": {
+    "per_seed": {
+      "0": 0.43333333333333335,
+      "1": 0.4,
+      "2": 0.3333333333333333,
+      "3": 0.36666666666666664,
+      "4": 0.4
+    },
+    "mean": 0.38666666666666666,
+    "std": 0.038005847503304616,
+    "n_rows": 150,
+    "errors": 0,
+    "completion_tokens": 2040.6066666666666,
+    "reasoning_chars": 4047.4533333333334,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.0,
+    "extraction_failure_rate": 0.16
+  },
+  "loop": {
+    "per_seed": {
+      "0": 0.4666666666666667,
+      "1": 0.43333333333333335,
+      "2": 0.43333333333333335,
+      "3": 0.36666666666666664,
+      "4": 0.5666666666666667
+    },
+    "mean": 0.4533333333333333,
+    "std": 0.07302967433402215,
+    "n_rows": 150,
+    "errors": 0,
+    "completion_tokens": 2495.133333333333,
+    "reasoning_chars": 5011.733333333334,
+    "reasoning_tokens": null,
+    "truncation_rate": 0.0,
+    "extraction_failure_rate": 0.14
+  },
+  "sign_test": {
+    "positive": 11,
+    "negative": 6,
+    "ties": 13,
+    "p": 0.332305908203125
+  },
+  "wilcoxon": {
+    "n": 17,
+    "statistic": 45.5,
+    "p": 0.13871223243302602,
+    "method": "scipy"
+  },
+  "mcnemar": {
+    "base_only": 4,
+    "loop_only": 5,
+    "p": 1.0,
+    "seed": 0,
+    "n": 30
+  },
+  "paired_questions": 30,
+  "per_category": {
+    "unknown": {
+      "n": 30,
+      "baseline": 0.38666666666666666,
+      "loop": 0.4533333333333333,
+      "delta": 0.06666666666666665,
+      "sign_p": 0.332305908203125
+    }
+  },
+  "mismatched_settings": []
+}
