@@ -67,3 +67,9 @@ benchmark/looped_transformer/run_session.sh: line 201: 2220702 Killed           
 [loop] 350/1920  elapsed 2.2 min  eta 9.8 min  161.0 req/min  5362 out tok/s
 [loop] 400/1920  elapsed 2.5 min  eta 9.3 min  162.6 req/min  5577 out tok/s
 [loop] 450/1920  elapsed 2.7 min  eta 8.9 min  164.7 req/min  5846 out tok/s
+[loop] 500/1920  elapsed 3.0 min  eta 8.4 min  168.9 req/min  6164 out tok/s
+[loop] 550/1920  elapsed 3.2 min  eta 7.9 min  172.9 req/min  6528 out tok/s
+[loop] 600/1920  elapsed 3.5 min  eta 7.7 min  171.5 req/min  6569 out tok/s
+[loop] 650/1920  elapsed 3.7 min  eta 7.3 min  173.9 req/min  6745 out tok/s
+[loop] 700/1920  elapsed 4.0 min  eta 6.9 min  176.3 req/min  6923 out tok/s
+[loop] 750/1920  elapsed 4.2 min  eta 6.6 min  177.2 req/min  7110 out tok/s
