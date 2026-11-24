@@ -12,3 +12,5 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [baseline] 50/1920  elapsed 1.0 min  eta 37.5 min  49.9 req/min  1366 out tok/s
 [baseline] 100/1920  elapsed 1.5 min  eta 28.2 min  64.5 req/min  2405 out tok/s
 [baseline] 150/1920  elapsed 2.3 min  eta 27.0 min  65.6 req/min  2969 out tok/s
+[baseline] 200/1920  elapsed 2.9 min  eta 25.2 min  68.2 req/min  3691 out tok/s
+[baseline] 250/1920  elapsed 3.6 min  eta 24.1 min  69.2 req/min  4258 out tok/s
