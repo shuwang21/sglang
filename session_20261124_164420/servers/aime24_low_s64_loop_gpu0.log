@@ -3973,3 +3973,148 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 [2026-11-24 17:04:15] Decode batch, #running-req: 84, #full token: 309793, full token usage: 0.09, #swa token: 16173, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 3167.08, #queue-req: 0
 [2026-11-24 17:04:16] INFO:     127.0.0.1:39548 - "POST /v1/chat/completions HTTP/1.1" 200 OK
 [2026-11-24 17:04:16] Decode batch, #running-req: 83, #full token: 310761, full token usage: 0.09, #swa token: 15989, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 3114.42, #queue-req: 0
+[2026-11-24 17:04:17] INFO:     127.0.0.1:36514 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:17] Decode batch, #running-req: 82, #full token: 311381, full token usage: 0.09, #swa token: 15585, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 3071.25, #queue-req: 0
+[2026-11-24 17:04:17] INFO:     127.0.0.1:38258 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:18] INFO:     127.0.0.1:38580 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:18] Decode batch, #running-req: 80, #full token: 307828, full token usage: 0.09, #swa token: 15234, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 3012.88, #queue-req: 0
+[2026-11-24 17:04:19] INFO:     127.0.0.1:36412 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:20] Decode batch, #running-req: 79, #full token: 302480, full token usage: 0.09, #swa token: 14816, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2944.15, #queue-req: 0
+[2026-11-24 17:04:20] INFO:     127.0.0.1:49224 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:21] Decode batch, #running-req: 78, #full token: 305600, full token usage: 0.09, #swa token: 14864, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2892.94, #queue-req: 0
+[2026-11-24 17:04:21] INFO:     127.0.0.1:37822 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:21] INFO:     127.0.0.1:37996 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:22] Decode batch, #running-req: 76, #full token: 298867, full token usage: 0.09, #swa token: 14663, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2834.54, #queue-req: 0
+[2026-11-24 17:04:22] INFO:     127.0.0.1:35720 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:23] INFO:     127.0.0.1:48920 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:23] INFO:     127.0.0.1:35686 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:23] Decode batch, #running-req: 73, #full token: 285017, full token usage: 0.08, #swa token: 14007, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2797.69, #queue-req: 0
+[2026-11-24 17:04:23] INFO:     127.0.0.1:37324 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:24] Decode batch, #running-req: 72, #full token: 283563, full token usage: 0.08, #swa token: 13834, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2693.31, #queue-req: 0
+[2026-11-24 17:04:24] INFO:     127.0.0.1:38168 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:24] INFO:     127.0.0.1:38508 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:24] INFO:     127.0.0.1:39542 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:25] Decode batch, #running-req: 69, #full token: 270508, full token usage: 0.08, #swa token: 13592, swa token usage: 0.01, cuda graph: False, gen throughput (token/s): 2615.31, #queue-req: 0
+[2026-11-24 17:04:25] INFO:     127.0.0.1:49248 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:26] INFO:     127.0.0.1:56156 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:26] INFO:     127.0.0.1:37620 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:26] Decode batch, #running-req: 66, #full token: 264698, full token usage: 0.08, #swa token: 12264, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2504.01, #queue-req: 0
+[2026-11-24 17:04:26] INFO:     127.0.0.1:37698 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:27] INFO:     127.0.0.1:38122 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:27] Decode batch, #running-req: 64, #full token: 256896, full token usage: 0.08, #swa token: 12271, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2402.55, #queue-req: 0
+[2026-11-24 17:04:28] INFO:     127.0.0.1:52240 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:28] INFO:     127.0.0.1:37254 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:28] Decode batch, #running-req: 63, #full token: 248325, full token usage: 0.07, #swa token: 12409, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2363.78, #queue-req: 0
+[2026-11-24 17:04:29] Decode batch, #running-req: 62, #full token: 250805, full token usage: 0.07, #swa token: 11817, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2312.91, #queue-req: 0
+[2026-11-24 17:04:30] INFO:     127.0.0.1:49062 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:30] Decode batch, #running-req: 61, #full token: 247121, full token usage: 0.07, #swa token: 11848, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2306.99, #queue-req: 0
+[2026-11-24 17:04:31] Decode batch, #running-req: 61, #full token: 249561, full token usage: 0.07, #swa token: 11728, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2249.89, #queue-req: 0
+[2026-11-24 17:04:32] INFO:     127.0.0.1:36570 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:32] INFO:     127.0.0.1:36398 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:32] Decode batch, #running-req: 59, #full token: 245375, full token usage: 0.07, #swa token: 11256, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2243.49, #queue-req: 0
+[2026-11-24 17:04:34] Decode batch, #running-req: 59, #full token: 247735, full token usage: 0.07, #swa token: 11440, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2212.47, #queue-req: 0
+[2026-11-24 17:04:34] INFO:     127.0.0.1:37280 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:34] INFO:     127.0.0.1:48426 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:35] Decode batch, #running-req: 57, #full token: 236711, full token usage: 0.07, #swa token: 10659, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2157.20, #queue-req: 0
+[2026-11-24 17:04:35] INFO:     127.0.0.1:56082 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:36] Decode batch, #running-req: 56, #full token: 235004, full token usage: 0.07, #swa token: 10745, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2115.12, #queue-req: 0
+[2026-11-24 17:04:37] INFO:     127.0.0.1:55866 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:37] Decode batch, #running-req: 55, #full token: 232989, full token usage: 0.07, #swa token: 10652, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 2094.29, #queue-req: 0
+[2026-11-24 17:04:37] INFO:     127.0.0.1:35642 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:37] INFO:     127.0.0.1:38756 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:37] INFO:     127.0.0.1:36444 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:37] INFO:     127.0.0.1:38706 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:38] INFO:     127.0.0.1:36560 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:38] Decode batch, #running-req: 50, #full token: 215586, full token usage: 0.06, #swa token: 9251, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1940.68, #queue-req: 0
+[2026-11-24 17:04:38] INFO:     127.0.0.1:56120 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:39] Decode batch, #running-req: 49, #full token: 208877, full token usage: 0.06, #swa token: 9391, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1854.57, #queue-req: 0
+[2026-11-24 17:04:39] INFO:     127.0.0.1:38132 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:39] INFO:     127.0.0.1:38678 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:40] Decode batch, #running-req: 47, #full token: 206923, full token usage: 0.06, #swa token: 9101, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1780.46, #queue-req: 0
+[2026-11-24 17:04:41] Decode batch, #running-req: 47, #full token: 208803, full token usage: 0.06, #swa token: 8933, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1768.43, #queue-req: 0
+[2026-11-24 17:04:42] Decode batch, #running-req: 47, #full token: 210683, full token usage: 0.06, #swa token: 9277, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1769.53, #queue-req: 0
+[2026-11-24 17:04:43] INFO:     127.0.0.1:36686 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:43] Decode batch, #running-req: 47, #full token: 209067, full token usage: 0.06, #swa token: 8686, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1765.87, #queue-req: 0
+[2026-11-24 17:04:44] Decode batch, #running-req: 46, #full token: 210907, full token usage: 0.06, #swa token: 8734, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1730.75, #queue-req: 0
+[2026-11-24 17:04:45] Decode batch, #running-req: 46, #full token: 212747, full token usage: 0.06, #swa token: 8910, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1723.92, #queue-req: 0
+[2026-11-24 17:04:45] INFO:     127.0.0.1:55976 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:45] INFO:     127.0.0.1:36524 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:46] Decode batch, #running-req: 44, #full token: 206298, full token usage: 0.06, #swa token: 8735, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1664.71, #queue-req: 0
+[2026-11-24 17:04:47] INFO:     127.0.0.1:37964 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:47] INFO:     127.0.0.1:55956 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:47] Decode batch, #running-req: 42, #full token: 198481, full token usage: 0.06, #swa token: 8344, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1625.15, #queue-req: 0
+[2026-11-24 17:04:48] INFO:     127.0.0.1:56074 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:48] INFO:     127.0.0.1:36474 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:48] Decode batch, #running-req: 40, #full token: 191678, full token usage: 0.06, #swa token: 7312, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1531.14, #queue-req: 0
+[2026-11-24 17:04:50] Decode batch, #running-req: 40, #full token: 193278, full token usage: 0.06, #swa token: 7760, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1503.67, #queue-req: 0
+[2026-11-24 17:04:51] Decode batch, #running-req: 40, #full token: 194878, full token usage: 0.06, #swa token: 7952, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1511.79, #queue-req: 0
+[2026-11-24 17:04:51] INFO:     127.0.0.1:36546 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:51] INFO:     127.0.0.1:38028 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:52] Decode batch, #running-req: 38, #full token: 187396, full token usage: 0.06, #swa token: 6880, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1459.23, #queue-req: 0
+[2026-11-24 17:04:52] INFO:     127.0.0.1:38486 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:53] INFO:     127.0.0.1:37988 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:53] Decode batch, #running-req: 37, #full token: 179151, full token usage: 0.05, #swa token: 6832, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1403.51, #queue-req: 0
+[2026-11-24 17:04:54] Decode batch, #running-req: 36, #full token: 180591, full token usage: 0.05, #swa token: 7376, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1364.39, #queue-req: 0
+[2026-11-24 17:04:55] Decode batch, #running-req: 36, #full token: 182031, full token usage: 0.05, #swa token: 6640, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1364.82, #queue-req: 0
+[2026-11-24 17:04:55] INFO:     127.0.0.1:49322 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:56] Decode batch, #running-req: 35, #full token: 176688, full token usage: 0.05, #swa token: 6674, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1348.13, #queue-req: 0
+[2026-11-24 17:04:56] INFO:     127.0.0.1:36674 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:57] Decode batch, #running-req: 34, #full token: 174039, full token usage: 0.05, #swa token: 6841, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1301.85, #queue-req: 0
+[2026-11-24 17:04:57] INFO:     127.0.0.1:37314 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:04:58] Decode batch, #running-req: 33, #full token: 169642, full token usage: 0.05, #swa token: 6167, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1255.49, #queue-req: 0
+[2026-11-24 17:04:59] Decode batch, #running-req: 33, #full token: 170962, full token usage: 0.05, #swa token: 6335, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1249.71, #queue-req: 0
+[2026-11-24 17:05:00] INFO:     127.0.0.1:55876 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:00] Decode batch, #running-req: 32, #full token: 167179, full token usage: 0.05, #swa token: 6137, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1238.61, #queue-req: 0
+[2026-11-24 17:05:01] Decode batch, #running-req: 32, #full token: 168459, full token usage: 0.05, #swa token: 6137, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1218.70, #queue-req: 0
+[2026-11-24 17:05:02] INFO:     127.0.0.1:43734 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:02] INFO:     127.0.0.1:58648 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:02] INFO:     127.0.0.1:35702 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:02] Decode batch, #running-req: 29, #full token: 142199, full token usage: 0.04, #swa token: 5498, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1179.48, #queue-req: 0
+[2026-11-24 17:05:02] INFO:     127.0.0.1:39450 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:03] INFO:     127.0.0.1:39572 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:03] Decode batch, #running-req: 27, #full token: 134929, full token usage: 0.04, #swa token: 5278, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1043.15, #queue-req: 0
+[2026-11-24 17:05:04] Decode batch, #running-req: 27, #full token: 136009, full token usage: 0.04, #swa token: 5462, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 1026.90, #queue-req: 0
+[2026-11-24 17:05:04] INFO:     127.0.0.1:38716 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:05] INFO:     127.0.0.1:39480 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:05] Decode batch, #running-req: 25, #full token: 128065, full token usage: 0.04, #swa token: 4559, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 983.08, #queue-req: 0
+[2026-11-24 17:05:06] Decode batch, #running-req: 25, #full token: 129065, full token usage: 0.04, #swa token: 4791, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 945.88, #queue-req: 0
+[2026-11-24 17:05:06] INFO:     127.0.0.1:38666 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:07] Decode batch, #running-req: 24, #full token: 125212, full token usage: 0.04, #swa token: 4778, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 901.06, #queue-req: 0
+[2026-11-24 17:05:08] INFO:     127.0.0.1:56048 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:08] INFO:     127.0.0.1:38646 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:09] Decode batch, #running-req: 22, #full token: 115899, full token usage: 0.03, #swa token: 4052, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 853.67, #queue-req: 0
+[2026-11-24 17:05:09] INFO:     127.0.0.1:39584 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:10] Decode batch, #running-req: 21, #full token: 107673, full token usage: 0.03, #swa token: 3782, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 796.29, #queue-req: 0
+[2026-11-24 17:05:10] INFO:     127.0.0.1:36460 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:10] INFO:     127.0.0.1:38778 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:11] Decode batch, #running-req: 19, #full token: 103523, full token usage: 0.03, #swa token: 3732, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 736.54, #queue-req: 0
+[2026-11-24 17:05:11] INFO:     127.0.0.1:37380 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:12] Decode batch, #running-req: 18, #full token: 98165, full token usage: 0.03, #swa token: 3239, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 682.09, #queue-req: 0
+[2026-11-24 17:05:13] Decode batch, #running-req: 18, #full token: 98885, full token usage: 0.03, #swa token: 3575, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 680.95, #queue-req: 0
+[2026-11-24 17:05:14] Decode batch, #running-req: 18, #full token: 99605, full token usage: 0.03, #swa token: 3527, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 682.12, #queue-req: 0
+[2026-11-24 17:05:14] INFO:     127.0.0.1:36606 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:14] INFO:     127.0.0.1:38192 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:15] Decode batch, #running-req: 16, #full token: 89687, full token usage: 0.03, #swa token: 3081, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 631.02, #queue-req: 0
+[2026-11-24 17:05:16] Decode batch, #running-req: 16, #full token: 90327, full token usage: 0.03, #swa token: 3209, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 609.80, #queue-req: 0
+[2026-11-24 17:05:16] INFO:     127.0.0.1:36644 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:17] Decode batch, #running-req: 15, #full token: 86158, full token usage: 0.03, #swa token: 2752, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 579.90, #queue-req: 0
+[2026-11-24 17:05:18] Decode batch, #running-req: 15, #full token: 86758, full token usage: 0.03, #swa token: 2840, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 573.07, #queue-req: 0
+[2026-11-24 17:05:19] Decode batch, #running-req: 15, #full token: 87358, full token usage: 0.03, #swa token: 3056, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 574.71, #queue-req: 0
+[2026-11-24 17:05:20] Decode batch, #running-req: 15, #full token: 87958, full token usage: 0.03, #swa token: 2888, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 575.12, #queue-req: 0
+[2026-11-24 17:05:20] INFO:     127.0.0.1:55892 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:21] Decode batch, #running-req: 14, #full token: 82593, full token usage: 0.02, #swa token: 2518, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 541.18, #queue-req: 0
+[2026-11-24 17:05:22] Decode batch, #running-req: 14, #full token: 83153, full token usage: 0.02, #swa token: 2694, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 533.82, #queue-req: 0
+[2026-11-24 17:05:23] INFO:     127.0.0.1:36664 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:23] Decode batch, #running-req: 13, #full token: 78709, full token usage: 0.02, #swa token: 2602, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 525.71, #queue-req: 0
+[2026-11-24 17:05:24] Decode batch, #running-req: 13, #full token: 79229, full token usage: 0.02, #swa token: 2482, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 495.91, #queue-req: 0
+[2026-11-24 17:05:25] Decode batch, #running-req: 13, #full token: 79749, full token usage: 0.02, #swa token: 2362, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 494.84, #queue-req: 0
+[2026-11-24 17:05:26] Decode batch, #running-req: 13, #full token: 80269, full token usage: 0.02, #swa token: 2626, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 492.89, #queue-req: 0
+[2026-11-24 17:05:27] Decode batch, #running-req: 13, #full token: 80789, full token usage: 0.02, #swa token: 2506, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 495.25, #queue-req: 0
+[2026-11-24 17:05:29] Decode batch, #running-req: 13, #full token: 81309, full token usage: 0.02, #swa token: 2386, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 497.02, #queue-req: 0
+[2026-11-24 17:05:29] INFO:     127.0.0.1:36620 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 17:05:30] Decode batch, #running-req: 12, #full token: 76510, full token usage: 0.02, #swa token: 2451, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 491.12, #queue-req: 0
+[2026-11-24 17:05:31] Decode batch, #running-req: 12, #full token: 76990, full token usage: 0.02, #swa token: 2291, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 455.99, #queue-req: 0
+[2026-11-24 17:05:32] Decode batch, #running-req: 12, #full token: 77470, full token usage: 0.02, #swa token: 2259, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 456.99, #queue-req: 0
+[2026-11-24 17:05:33] Decode batch, #running-req: 12, #full token: 77950, full token usage: 0.02, #swa token: 2483, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 455.44, #queue-req: 0
+[2026-11-24 17:05:34] Decode batch, #running-req: 12, #full token: 78430, full token usage: 0.02, #swa token: 2195, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 456.17, #queue-req: 0
+[2026-11-24 17:05:35] Decode batch, #running-req: 12, #full token: 78910, full token usage: 0.02, #swa token: 2291, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 453.30, #queue-req: 0
