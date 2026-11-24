@@ -41,3 +41,5 @@ tar: session_20261124_171958/session.log: file changed as we read it
 [17:40:51 +20m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_171958.tar.gz (3.6M)
 [baseline] 1350/1920  elapsed 20.2 min  eta 8.5 min  67.0 req/min  8471 out tok/s
 [baseline] 1400/1920  elapsed 20.8 min  eta 7.7 min  67.2 req/min  8549 out tok/s
+[baseline] 1450/1920  elapsed 21.6 min  eta 7.0 min  67.2 req/min  8603 out tok/s
+[baseline] 1500/1920  elapsed 22.3 min  eta 6.2 min  67.3 req/min  8621 out tok/s
