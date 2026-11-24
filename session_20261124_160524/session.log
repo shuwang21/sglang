@@ -5,3 +5,50 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30 questions ready
 [16:05:33 +0m] === aime24_low_s5 / baseline ===
 [16:05:33 +0m] starting baseline server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160524/servers/aime24_low_s5_baseline_gpu0.log
+benchmark/looped_transformer/run_session.sh: line 222: 1510604 Killed                  CUDA_VISIBLE_DEVICES="$gpu" setsid "${cmd[@]}" > "$logfile" 2>&1 < /dev/null
+[16:07:19 +1m] ERROR: server on port 30000 exited during startup; last lines of /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160524/servers/aime24_low_s5_baseline_gpu0.log:
+Multi-thread loading shards:   0% Completed | 0/3 [00:00<?, ?it/s]Multi-thread loading shards:  33% Completed | 1/3 [00:00<00:01,  1.26it/s]Multi-thread loading shards:  67% Completed | 2/3 [00:01<00:00,  1.41it/s]Multi-thread loading shards: 100% Completed | 3/3 [00:01<00:00,  1.92it/s]Multi-thread loading shards: 100% Completed | 3/3 [00:01<00:00,  1.72it/s]
+[2026-11-24 16:07:08] Load weight end. elapsed=63.76 s, type=GptOssForCausalLM, quant=mxfp4, avail mem=163.35 GB, mem usage=14.23 GB.
+[2026-11-24 16:07:15] Use sliding window memory pool. full_layer_tokens=3370563, swa_layer_tokens=2696450
+[2026-11-24 16:07:15] Full KV Cache is allocated. dtype: torch.bfloat16, #tokens: 3370563, K size: 38.57 GB, V size: 38.57 GB
+[2026-11-24 16:07:15] SWA KV Cache is allocated. dtype: torch.bfloat16, #tokens: 2696450, K size: 30.86 GB, V size: 30.86 GB
+[2026-11-24 16:07:15] SWAKVPool mem usage: 138.86 GB, swa size: 2696450, full size: 3370563
+[2026-11-24 16:07:15] Memory pool end. avail mem=22.43 GB
+[2026-11-24 16:07:15] Scheduler hit an exception: Traceback (most recent call last):
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/scheduler.py", line 6031, in run_scheduler_process
+    scheduler = Scheduler(
+                ^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/scheduler.py", line 552, in __init__
+    self.init_model_worker()
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/scheduler.py", line 1092, in init_model_worker
+    self.init_all_attention_backends()
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/scheduler.py", line 1070, in init_all_attention_backends
+    self.tp_worker.init_attention_backends()
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/managers/tp_worker.py", line 460, in init_attention_backends
+    self.model_runner.init_attention_backends()
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/model_runner.py", line 1032, in init_attention_backends
+    backends = build_attention_backends(model_runner=self)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/model_runner_components/attention_backend_setup.py", line 131, in build_attention_backends
+    attn_backend = _build_resolved_backend(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/model_runner_components/attention_backend_setup.py", line 250, in _build_resolved_backend
+    attn_backend = _build_backend_from_str(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/model_runner_components/attention_backend_setup.py", line 263, in _build_backend_from_str
+    _build_full_attention_backend_from_str(
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/model_executor/model_runner_components/attention_backend_setup.py", line 277, in _build_full_attention_backend_from_str
+    return ATTENTION_BACKENDS[backend_str](model_runner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/shuwang21/home/sglang-looped/python/sglang/srt/layers/attention/attention_registry.py", line 232, in create_flashattention_v3_backend
+    assert (major == 8 and not runner.use_mla_backend) or major == 9, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: FlashAttention v3 Backend requires SM>=80 and SM<=90. Please use `--attention-backend flashinfer`.
+
+[2026-11-24 16:07:15] Received sigquit from a child process. It usually means the child failed.
+[2026-11-24 16:07:15] kill_process_tree called: parent_pid=1510604, include_parent=True, pid=1510604
+[16:07:19 +1m] stopping 1 server(s) (pids 1510604)
+[16:07:19 +1m] all tasks done (failed=1)
+[16:07:19 +1m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160524.tar.gz (12K)
+[16:07:19 +1m] exit code 1; session dir /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160524
+[16:07:19 +1m] pull it from the laptop: bash benchmark/looped_transformer/fetch_results.sh <you>@<node>
