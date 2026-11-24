@@ -49,3 +49,11 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [baseline] 1900/1920  elapsed 7.5 min  eta 0.1 min  254.3 req/min  8799 out tok/s
 [baseline] 1920/1920  elapsed 8.5 min  eta 0.0 min  225.3 req/min  7887 out tok/s
 [16:53:55 +9m] stopping 1 server(s) (pids 1675671)
+benchmark/looped_transformer/run_session.sh: line 201: 1675671 Killed                  CUDA_VISIBLE_DEVICES="$gpu" setsid "${cmd[@]}" > "$logfile" 2>&1 < /dev/null
+[16:54:02 +9m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420.tar.gz (3.9M)
+[16:54:02 +9m] === aime24_low_s64 / loop ===
+[16:54:02 +9m] starting loop server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_164420/servers/aime24_low_s64_loop_gpu0.log
+[16:54:44 +10m] 1 server(s) ready after 40s
+[16:54:44 +10m] eval aime24_low_s64 / loop on 1 server(s)
+[loop] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[loop] 30 questions x 64 seeds; 0 done, 1920 to run; 1 server(s) x concurrency 256
