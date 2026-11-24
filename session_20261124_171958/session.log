@@ -25,3 +25,4 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [17:30:49 +10m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_171958.tar.gz (3.6M)
 [baseline] 700/1920  elapsed 10.7 min  eta 18.7 min  65.1 req/min  6356 out tok/s
 [baseline] 750/1920  elapsed 11.5 min  eta 17.9 min  65.2 req/min  6546 out tok/s
+[baseline] 800/1920  elapsed 12.3 min  eta 17.3 min  64.9 req/min  6734 out tok/s
