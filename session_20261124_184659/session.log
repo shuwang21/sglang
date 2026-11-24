@@ -45,3 +45,6 @@ aime25 {'path': 'MathArena/aime_2025', 'config': None, 'split': 'train'}: 30 que
 [baseline] 1650/1920  elapsed 6.1 min  eta 1.0 min  270.6 req/min  8869 out tok/s
 [baseline] 1700/1920  elapsed 6.3 min  eta 0.8 min  271.4 req/min  8919 out tok/s
 [baseline] 1750/1920  elapsed 6.5 min  eta 0.6 min  271.3 req/min  8937 out tok/s
+[baseline] 1800/1920  elapsed 6.6 min  eta 0.4 min  271.6 req/min  8997 out tok/s
+[baseline] 1850/1920  elapsed 6.9 min  eta 0.3 min  269.9 req/min  9032 out tok/s
+[baseline] 1900/1920  elapsed 7.4 min  eta 0.1 min  257.2 req/min  8762 out tok/s
