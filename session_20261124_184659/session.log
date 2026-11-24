@@ -1,0 +1,31 @@
+[18:46:59 +0m] session /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659, 1 task(s); 1 GPU (0): baseline, then loop
+[18:46:59 +0m] attention backend: triton (GPU compute capability 10.0)
+[18:47:05 +0m] preflight dataset: aime25_low_s64
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split:   0%|          | 0/30 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 30/30 [00:00<00:00, 6966.13 examples/s]
+aime25 {'path': 'MathArena/aime_2025', 'config': None, 'split': 'train'}: 30 questions ready
+[18:47:07 +0m] === aime25_low_s64 / baseline ===
+[18:47:07 +0m] starting baseline server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659/servers/aime25_low_s64_baseline_gpu0.log
+[18:47:49 +0m] 1 server(s) ready after 40s
+[18:47:49 +0m] eval aime25_low_s64 / baseline on 1 server(s)
+[baseline] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[baseline] 30 questions x 64 seeds; 0 done, 1920 to run; 1 server(s) x concurrency 256
+[baseline] 50/1920  elapsed 0.5 min  eta 18.1 min  103.0 req/min  1358 out tok/s
+[baseline] 100/1920  elapsed 0.6 min  eta 11.3 min  161.4 req/min  2852 out tok/s
+[baseline] 150/1920  elapsed 0.8 min  eta 9.3 min  190.2 req/min  3857 out tok/s
+[baseline] 200/1920  elapsed 1.0 min  eta 8.6 min  199.8 req/min  4446 out tok/s
+[baseline] 250/1920  elapsed 1.2 min  eta 7.7 min  217.0 req/min  5209 out tok/s
+[baseline] 300/1920  elapsed 1.3 min  eta 7.1 min  228.9 req/min  5838 out tok/s
+[baseline] 350/1920  elapsed 1.5 min  eta 6.7 min  234.4 req/min  6125 out tok/s
+[baseline] 400/1920  elapsed 1.7 min  eta 6.4 min  236.1 req/min  6507 out tok/s
+[baseline] 450/1920  elapsed 1.8 min  eta 6.0 min  244.4 req/min  6958 out tok/s
+[baseline] 500/1920  elapsed 2.0 min  eta 5.7 min  247.5 req/min  7225 out tok/s
+[baseline] 550/1920  elapsed 2.2 min  eta 5.5 min  249.1 req/min  7364 out tok/s
+[baseline] 600/1920  elapsed 2.4 min  eta 5.2 min  252.9 req/min  7557 out tok/s
+[baseline] 650/1920  elapsed 2.6 min  eta 5.0 min  254.6 req/min  7662 out tok/s
+[baseline] 700/1920  elapsed 2.7 min  eta 4.8 min  256.7 req/min  7913 out tok/s
+[baseline] 750/1920  elapsed 2.9 min  eta 4.5 min  258.9 req/min  8040 out tok/s
+[baseline] 800/1920  elapsed 3.1 min  eta 4.3 min  258.0 req/min  8060 out tok/s
+[baseline] 850/1920  elapsed 3.3 min  eta 4.1 min  259.6 req/min  8136 out tok/s
+[baseline] 900/1920  elapsed 3.5 min  eta 3.9 min  260.6 req/min  8300 out tok/s
+[baseline] 950/1920  elapsed 3.6 min  eta 3.7 min  264.8 req/min  8432 out tok/s
