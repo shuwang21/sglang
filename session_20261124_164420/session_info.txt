@@ -1,0 +1,16 @@
+date: 2026-11-24T16:44:20Z
+host: di-bm-kmzsop-118
+git_head: b60c4f02119acb9fd8f80f217c434fa90c593fc0
+git_branch: shuwang/looped
+git_status:
+?? results/
+model: openai/gpt-oss-20b
+loop_config: {"start":12,"end":15,"k":2,"mode":"block","strategy":"block_anchored","anchor_beta":0.35,"cache_strategy":"first","decode_mode":"full"}
+SGLANG_ENABLE_JIT_DEEPGEMM=0
+GPUS=0 (parallel=0; baseline 0; loop 0)
+CONCURRENCY=64 per server; TIME_BUDGET_MIN=183
+ATTENTION_BACKEND=triton (GPU compute capability 10.0)
+HF_HOME=/data/shuwang21/home/hf_cache
+tasks:
+  aime24_low_s64|--dataset aime24 --reasoning-effort low --temperature 1.0 --top-p 1.0 --max-tokens 32768 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63  --concurrency 256
+python: Python 3.12.16
