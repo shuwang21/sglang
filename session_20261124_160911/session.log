@@ -30,3 +30,14 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [baseline] 140/150  elapsed 1.6 min  eta 0.1 min  89.1 req/min  2737 out tok/s
 [baseline] 147/150  elapsed 2.1 min  eta 0.0 min  70.8 req/min  2316 out tok/s
 [baseline] 150/150  elapsed 3.0 min  eta 0.0 min  49.8 req/min  1693 out tok/s
+[16:27:52 +18m] stopping 1 server(s) (pids 1523365)
+[16:27:55 +18m] packed -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160911.tar.gz (316K)
+[16:27:55 +18m] === aime24_low_s5 / loop ===
+[16:27:55 +18m] starting loop server on GPU 0, port 30000 -> /data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_160911/servers/aime24_low_s5_loop_gpu0.log
+[16:28:36 +19m] 1 server(s) ready after 40s
+[16:28:36 +19m] eval aime24_low_s5 / loop on 1 server(s)
+[loop] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[loop] 30 questions x 5 seeds; 0 done, 150 to run; 1 server(s) x concurrency 150
+[loop] 7/150  elapsed 0.4 min  eta 7.2 min  19.8 req/min  225 out tok/s
+[loop] 14/150  elapsed 0.4 min  eta 4.1 min  33.1 req/min  441 out tok/s
+[loop] 21/150  elapsed 0.5 min  eta 3.0 min  42.7 req/min  628 out tok/s

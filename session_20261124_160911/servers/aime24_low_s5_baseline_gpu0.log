@@ -383,3 +383,11 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
 [2026-11-24 16:27:38] Decode batch, #running-req: 1, #full token: 7490, full token usage: 0.00, #swa token: 194, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 42.32, #queue-req: 0
 [2026-11-24 16:27:39] Decode batch, #running-req: 1, #full token: 7530, full token usage: 0.00, #swa token: 234, swa token usage: 0.00, cuda graph: False, gen throughput (token/s): 42.29, #queue-req: 0
 [2026-11-24 16:27:39] INFO:     127.0.0.1:50754 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-11-24 16:27:52] SIGTERM received. signum=None frame=None. Draining requests and shutting down...
+[2026-11-24 16:27:53] Gracefully exiting... Remaining number of requests 0. Remaining requests remaining_rids=[].
+[2026-11-24 16:27:53] kill_process_tree called: parent_pid=1523365, include_parent=False, pid=1523365
+[2026-11-24 16:27:53] INFO:     Shutting down
+[2026-11-24 16:27:53] INFO:     Waiting for application shutdown.
+[2026-11-24 16:27:53] INFO:     Application shutdown complete.
+[2026-11-24 16:27:53] INFO:     Finished server process [1523365]
+[2026-11-24 16:27:53] kill_process_tree called: parent_pid=1523365, include_parent=False, pid=1523365

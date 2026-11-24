@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=0
+python -m sglang.launch_server --model-path openai/gpt-oss-20b --host 127.0.0.1 --port 30000 --tp-size 1 --attention-backend fa3 --disable-radix-cache --disable-cuda-graph --log-level info --reasoning-parser gpt-oss --loop-config \{\"start\":12\,\"end\":15\,\"k\":2\,\"mode\":\"block\"\,\"strategy\":\"block_anchored\"\,\"anchor_beta\":0.35\,\"cache_strategy\":\"first\"\,\"decode_mode\":\"full\"\} --attention-backend triton 
