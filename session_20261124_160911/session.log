@@ -56,3 +56,6 @@ aime24 {'path': 'HuggingFaceH4/aime_2024', 'config': None, 'split': 'train'}: 30
 [loop] 112/150  elapsed 1.4 min  eta 0.5 min  78.1 req/min  2407 out tok/s
 [loop] 119/150  elapsed 1.5 min  eta 0.4 min  77.0 req/min  2488 out tok/s
 [loop] 126/150  elapsed 1.7 min  eta 0.3 min  75.4 req/min  2555 out tok/s
+[loop] 133/150  elapsed 2.0 min  eta 0.3 min  66.5 req/min  2371 out tok/s
+[loop] 140/150  elapsed 2.2 min  eta 0.2 min  64.3 req/min  2423 out tok/s
+[loop] 147/150  elapsed 2.5 min  eta 0.1 min  58.3 req/min  2343 out tok/s
