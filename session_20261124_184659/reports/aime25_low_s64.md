@@ -3,8 +3,7 @@
 - baseline: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659/runs/aime25_low_s64/baseline`
 - loop: `/data/shuwang21/home/sglang-looped/results/gptoss_sessions/session_20261124_184659/runs/aime25_low_s64/loop`
 - dataset: aime25 {'path': 'MathArena/aime_2025', 'config': None, 'split': 'train'}, limit=None, per_category=None, reasoning_effort=low, temperature=1.0, top_p=1.0, max_tokens=32768
-- seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]; paired questions: 10
-- **incomplete run: baseline 1920, loop 1853 of 1920 (question, seed) pairs.** Pairs run in hashed order, so the paired questions are a random subset.
+- seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]; paired questions: 30
 
 ## Accuracy per seed
 
@@ -49,7 +48,7 @@
 | 36 | 0.3000 | 0.5333 | +0.2333 |
 | 37 | 0.3667 | 0.4333 | +0.0667 |
 | 38 | 0.4333 | 0.4333 | +0.0000 |
-| 39 | 0.3333 | 0.5172 | +0.1839 |
+| 39 | 0.3333 | 0.5333 | +0.2000 |
 | 40 | 0.3333 | 0.4000 | +0.0667 |
 | 41 | 0.3333 | 0.4333 | +0.1000 |
 | 42 | 0.4000 | 0.4000 | +0.0000 |
@@ -58,40 +57,40 @@
 | 45 | 0.3333 | 0.4667 | +0.1333 |
 | 46 | 0.4000 | 0.4333 | +0.0333 |
 | 47 | 0.4667 | 0.4667 | +0.0000 |
-| 48 | 0.3333 | 0.4483 | +0.1149 |
+| 48 | 0.3333 | 0.4333 | +0.1000 |
 | 49 | 0.3333 | 0.5000 | +0.1667 |
 | 50 | 0.3667 | 0.5000 | +0.1333 |
 | 51 | 0.3667 | 0.4333 | +0.0667 |
-| 52 | 0.2000 | 0.4286 | +0.2286 |
-| 53 | 0.4000 | 0.5000 | +0.1000 |
-| 54 | 0.4000 | 0.4643 | +0.0643 |
-| 55 | 0.3333 | 0.5172 | +0.1839 |
-| 56 | 0.3000 | 0.6154 | +0.3154 |
-| 57 | 0.3000 | 0.5556 | +0.2556 |
-| 58 | 0.3333 | 0.5200 | +0.1867 |
-| 59 | 0.4333 | 0.4231 | -0.0103 |
-| 60 | 0.3000 | 0.5652 | +0.2652 |
+| 52 | 0.2000 | 0.4000 | +0.2000 |
+| 53 | 0.4000 | 0.5667 | +0.1667 |
+| 54 | 0.4000 | 0.4333 | +0.0333 |
+| 55 | 0.3333 | 0.5333 | +0.2000 |
+| 56 | 0.3000 | 0.5667 | +0.2667 |
+| 57 | 0.3000 | 0.5000 | +0.2000 |
+| 58 | 0.3333 | 0.4667 | +0.1333 |
+| 59 | 0.4333 | 0.4333 | +0.0000 |
+| 60 | 0.3000 | 0.5333 | +0.2333 |
 | 61 | 0.4667 | 0.5000 | +0.0333 |
-| 62 | 0.3667 | 0.5556 | +0.1889 |
-| 63 | 0.3667 | 0.5882 | +0.2216 |
-| mean ± std | 0.3672 ± 0.0657 | 0.4620 ± 0.0637 | +0.0948 |
+| 62 | 0.3667 | 0.4333 | +0.0667 |
+| 63 | 0.3667 | 0.4000 | +0.0333 |
+| mean ± std | 0.3672 ± 0.0657 | 0.4547 ± 0.0592 | +0.0875 |
 
 ## Generation statistics
 
 | metric | baseline | loop |
 | --- | ---: | ---: |
-| mean completion tokens | 2076.4 | 2621.8 |
+| mean completion tokens | 2076.4 | 2727.8 |
 | mean reasoning tokens | n/a | n/a |
-| mean reasoning length (chars) | 4031.6 | 5352.3 |
+| mean reasoning length (chars) | 4031.6 | 5612.2 |
 | truncation rate (finish_reason=length) | 0.0000 | 0.0000 |
-| answer extraction failure rate | 0.0255 | 0.0151 |
+| answer extraction failure rate | 0.0255 | 0.0156 |
 | request errors (excluded) | 0 | 0 |
-| scored rows | 1920 | 1853 |
+| scored rows | 1920 | 1920 |
 
 ## Paired tests
 
 | test | statistic | p-value |
 | --- | --- | ---: |
-| sign test, per-question mean over 64 seeds (loop − baseline) | +9 / −0 / =1 | 0.003906 |
-| Wilcoxon signed-rank (scipy), same differences | W=0.0, n=9 | 0.003906 |
+| sign test, per-question mean over 64 seeds (loop − baseline) | +24 / −3 / =3 | 4.923e-05 |
+| Wilcoxon signed-rank (scipy), same differences | W=12.0, n=27 | 1.997e-05 |
 | McNemar exact, seed 0 (30 questions) | baseline-only 3 / loop-only 4 | 1 |
